@@ -214,6 +214,7 @@ The above value is then available in step contexts as:
       "chunk_size": 5,
       "delimiter": "_",
       "request_data_wrapper": "{ \"data\": {{data}}}",
+      "infer_types_for_unknown": true,
       "column_types": [
         {
           "column": "bool_bool2",

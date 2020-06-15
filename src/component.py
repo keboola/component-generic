@@ -29,6 +29,7 @@ KEY_JSON_DATA_CFG = 'json_data_config'
 KEY_DELIMITER = 'delimiter'
 KEY_COLUMN_TYPES = 'column_types'
 KEY_REQUEST_DATA_WRAPPER = "request_data_wrapper"
+KEY_INFER_TYPES = "infer_types_for_unknown"
 
 # additional request params
 KEY_HEADERS = 'headers'
@@ -36,7 +37,6 @@ KEY_ADDITIONAL_PARS = 'additional_requests_pars'
 KEY_CHUNK_SIZE = 'chunk_size'
 STATUS_FORCELIST = (500, 501, 502, 503)
 MAX_RETRIES = 10
-
 
 # #### Keep for debug
 KEY_DEBUG = 'debug'
@@ -143,14 +143,16 @@ class Component(KBCEnvHandler):
             delimiter = params[KEY_DELIMITER]
             chunk_size = params.get(KEY_CHUNK_SIZE, None)
             i = 1
-            for json_payload in self.convert_csv_2_json_in_chunks(reader, conv, col_types, delimiter, chunk_size):
+            for json_payload in self.convert_csv_2_json_in_chunks(reader, conv, col_types, delimiter,
+                                                                  params.get(KEY_INFER_TYPES, False), chunk_size):
                 logging.info(f'Sending JSON data chunk {i}')
                 json_payload = self._wrap_json_payload(params.get(KEY_REQUEST_DATA_WRAPPER, None), json_payload)
                 additional_request_params['json'] = json_payload
                 self.send_request(url, additional_request_params)
                 i += 1
 
-    def convert_csv_2_json_in_chunks(self, reader, converter: Csv2JsonConverter, col_types, delimiter, chunk_size=None):
+    def convert_csv_2_json_in_chunks(self, reader, converter: Csv2JsonConverter, col_types, delimiter,
+                                     infer_undefined=False, chunk_size=None):
         # fetch first row
         row = next(reader, None)
         if not row:
@@ -164,7 +166,8 @@ class Component(KBCEnvHandler):
                 i += 1
                 result = converter.convert_row(row=row,
                                                coltypes=col_types,
-                                               delimit=delimiter)
+                                               delimit=delimiter,
+                                               infer_undefined=infer_undefined)
 
                 json_string += json.dumps(result[0])
                 row = next(reader, None)
