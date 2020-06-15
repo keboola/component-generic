@@ -1,0 +1,5 @@
+https://bitbucket.org/kds_consulting_team/keboola-python-util-lib/get/0.2.9.zip#egg=kbc
+https://bitbucket.org/kds_consulting_team/kds-team.processor-csv-to-json/get/0.1.5.zip#egg=csv2json
+mock
+freezegun
+nested-lookup
