@@ -3,3 +3,4 @@ https://bitbucket.org/kds_consulting_team/kds-team.processor-csv-to-json/get/0.1
 mock
 freezegun
 nested-lookup
+strconv

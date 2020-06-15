@@ -19,22 +19,24 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 # configuration variables
-KEY_CHUNK_SIZE = 'chunk_size'
-STATUS_FORCELIST = (500, 501, 502, 503)
-MAX_RETRIES = 10
 KEY_USER_PARS = 'user_parameters'
 
 KEY_PATH = 'path'
 KEY_MODE = 'mode'
 KEY_METHOD = 'method'
+# JSON config params
 KEY_JSON_DATA_CFG = 'json_data_config'
 KEY_DELIMITER = 'delimiter'
 KEY_COLUMN_TYPES = 'column_types'
 KEY_REQUEST_DATA_WRAPPER = "request_data_wrapper"
 
+# additional request params
 KEY_HEADERS = 'headers'
 KEY_ADDITIONAL_PARS = 'additional_requests_pars'
-KEY_RES_FILE_NAME = 'file_name'
+KEY_CHUNK_SIZE = 'chunk_size'
+STATUS_FORCELIST = (500, 501, 502, 503)
+MAX_RETRIES = 10
+
 
 # #### Keep for debug
 KEY_DEBUG = 'debug'
