@@ -1,1 +1,1 @@
-Testing functional sample extractor for purposes of the python component template. 
+Send data to REST like APIs either as JSON or a BINARY payload.
