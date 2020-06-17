@@ -84,7 +84,7 @@ class Component(KBCEnvHandler):
         if os.path.exists(iteration_pars_path):
             has_iterations = True
             iteration_params = self._get_iteration_params(iteration_pars_path)
-            logging.warning(f'Iteration parameters table found, running multiple iterations.')
+            logging.warning('Iteration parameters table found, running multiple iterations.')
 
         logging.info('Processing input mapping.')
 
