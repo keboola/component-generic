@@ -8,6 +8,7 @@ import glob
 import gzip
 import json
 import logging
+import os
 import shutil
 import sys
 
@@ -38,6 +39,7 @@ KEY_CHUNK_SIZE = 'chunk_size'
 STATUS_FORCELIST = (500, 501, 502, 503)
 MAX_RETRIES = 10
 
+PAR_ITERATIONS_FILE = 'iteration_params.csv'
 # #### Keep for debug
 KEY_DEBUG = 'debug'
 
@@ -76,15 +78,21 @@ class Component(KBCEnvHandler):
         '''
         params = self.cfg_params  # noqa
 
-        headers_cfg = params.get(KEY_HEADERS, {})
-        additional_params_cfg = params.get(KEY_ADDITIONAL_PARS, [])
-
-        headers_cfg = self._fill_in_user_parameters(headers_cfg, self.cfg_params.get(KEY_USER_PARS))
-        additional_params_cfg = self._fill_in_user_parameters(additional_params_cfg,
-                                                              self.cfg_params.get(KEY_USER_PARS))
+        iteration_pars_path = os.path.join(self.tables_in_path, PAR_ITERATIONS_FILE)
+        iteration_params = [{}]
+        has_iterations = False
+        if os.path.exists(iteration_pars_path):
+            has_iterations = True
+            iteration_params = self._get_iteration_params(iteration_pars_path)
+            logging.warning(f'Iteration parameters table found, running multiple iterations.')
 
         logging.info('Processing input mapping.')
+
         in_tables = glob.glob(self.tables_in_path + "/*[!.manifest]")
+        # remove params path
+        if has_iterations:
+            in_tables.remove(iteration_pars_path)
+
         if len(in_tables) == 0:
             logging.exception('There is no table specified on the input mapping! You must provide one input table!')
             exit(1)
@@ -94,35 +102,61 @@ class Component(KBCEnvHandler):
 
         in_table = in_tables[0]
 
-        logging.info("Building parameters..")
-        # build headers
-        headers = {}
-        if params.get(KEY_HEADERS):
-            for h in headers_cfg:
-                headers[h["key"]] = h["value"]
+        # runing iterations
+        for index, iter_params in enumerate(iteration_params):
+            headers_cfg = params.get(KEY_HEADERS, {}).copy()
+            additional_params_cfg = params.get(KEY_ADDITIONAL_PARS, []).copy()
+            # merge iter params
+            user_params = {**self.cfg_params.get(KEY_USER_PARS).copy(), **iter_params}
+            path = params[KEY_PATH]
+            path = self._apply_iteration_params(path, iter_params)
+            if has_iterations:
+                logging.info(f'Running iteration nr. {index}')
 
-        # build additional parameters
-        additional_params = {}
-        if additional_params_cfg:
-            for h in additional_params_cfg:
-                # convert boolean
-                val = h["value"]
-                if isinstance(val, str) and val.lower() in ['false', 'true']:
-                    val = val.lower() in ['true']
-                additional_params[h["key"]] = val
+            logging.info("Building parameters..")
 
-        additional_params['headers'] = headers
+            headers_cfg = self._fill_in_user_parameters(headers_cfg, user_params)
+            additional_params_cfg = self._fill_in_user_parameters(additional_params_cfg, user_params)
+            # build headers
+            headers = {}
+            if params.get(KEY_HEADERS):
+                for h in headers_cfg:
+                    headers[h["key"]] = h["value"]
 
-        logging.info(f'Sending data in mode: {params[KEY_MODE]}, using {params[KEY_METHOD]} method')
+            # build additional parameters
+            additional_params = {}
+            if additional_params_cfg:
+                for h in additional_params_cfg:
+                    # convert boolean
+                    val = h["value"]
+                    if isinstance(val, str) and val.lower() in ['false', 'true']:
+                        val = val.lower() in ['true']
+                    additional_params[h["key"]] = val
 
-        if params[KEY_MODE] == 'JSON':
-            json_cfg = params[KEY_JSON_DATA_CFG]
-            json_cfg = self._fill_in_user_parameters(json_cfg, self.cfg_params.get(KEY_USER_PARS))
+            additional_params['headers'] = headers
 
-            self.send_json_data(json_cfg, in_table, params[KEY_PATH], additional_params)
-        elif params[KEY_MODE] in ['BINARY', 'BINARY_GZ']:
-            self.send_binary_data(params[KEY_PATH], params[KEY_MODE], additional_params, in_table)
-        logging.info("Extraction finished")
+            logging.info(f'Sending data in mode: {params[KEY_MODE]}, using {params[KEY_METHOD]} method')
+
+            if params[KEY_MODE] == 'JSON':
+                json_cfg = params[KEY_JSON_DATA_CFG]
+                json_cfg = self._fill_in_user_parameters(json_cfg, self.cfg_params.get(KEY_USER_PARS))
+
+                self.send_json_data(json_cfg, in_table, path, additional_params)
+            elif params[KEY_MODE] in ['BINARY', 'BINARY_GZ']:
+                self.send_binary_data(path, params[KEY_MODE], additional_params, in_table)
+
+        logging.info("Writer finished")
+
+    def _get_iteration_params(self, iteration_pars_path):
+        with open(iteration_pars_path, mode='rt', encoding='utf-8') as in_file:
+            reader = csv.DictReader(in_file, lineterminator='\n')
+            for r in reader:
+                yield r
+
+    def _apply_iteration_params(self, path, iter_params):
+        for p in iter_params:
+            path = path.replace('{{' + p + '}}', iter_params[p])
+        return path
 
     def send_request(self, url, additional_params, method='POST'):
         s = requests.Session()
