@@ -73,6 +73,7 @@ class Component(KBCEnvHandler):
 
         # intialize instance parameteres
         self.user_functions = Component.UserFunctions(self)
+        self.method = self.cfg_params.get(KEY_METHOD, 'POST')
 
     def run(self):
         '''
@@ -210,7 +211,7 @@ class Component(KBCEnvHandler):
                 logging.info(f'Sending JSON data chunk {i}')
                 json_payload = self._wrap_json_payload(params.get(KEY_REQUEST_DATA_WRAPPER, None), json_payload)
                 additional_request_params['json'] = json_payload
-                self.send_request(url, additional_request_params)
+                self.send_request(url, additional_request_params, method=self.method)
                 i += 1
 
     def convert_csv_2_json_in_chunks(self, reader, converter: Csv2JsonConverter, col_types, delimiter,
@@ -259,7 +260,7 @@ class Component(KBCEnvHandler):
 
         with open(in_path, mode='rb') as in_file:
             additional_request_params['data'] = in_file
-            self.send_request(url, additional_request_params)
+            self.send_request(url, additional_request_params, method=self.method)
 
     def _requests_retry_session(self, session=None):
         session = session or requests.Session()
@@ -269,7 +270,7 @@ class Component(KBCEnvHandler):
             connect=MAX_RETRIES,
             backoff_factor=0.5,
             status_forcelist=STATUS_FORCELIST,
-            method_whitelist=('GET', 'POST', 'PATCH', 'UPDATE')
+            method_whitelist=('GET', 'POST', 'PATCH', 'UPDATE', 'PUT')
         )
         adapter = HTTPAdapter(max_retries=retry)
         session.mount('http://', adapter)
