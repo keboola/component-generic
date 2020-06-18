@@ -189,9 +189,12 @@ class Component(KBCEnvHandler):
 
     def send_request(self, url, additional_params, method='POST'):
         s = requests.Session()
-
         r = self._requests_retry_session(session=s).request(method, url, **additional_params)
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except requests.HTTPError as e:
+            logging.error(f'Sending request failed: {r.text}. {e}')
+            sys.exit(1)
 
     def send_json_data(self, params, in_table, url, additional_request_params):
         logging.info(f"Processing table {in_table}")
@@ -210,6 +213,7 @@ class Component(KBCEnvHandler):
                                                                   params.get(KEY_INFER_TYPES, False), chunk_size):
                 logging.info(f'Sending JSON data chunk {i}')
                 json_payload = self._wrap_json_payload(params.get(KEY_REQUEST_DATA_WRAPPER, None), json_payload)
+                logging.debug(f'Sending  Payload: {json_payload} ')
                 additional_request_params['json'] = json_payload
                 self.send_request(url, additional_request_params, method=self.method)
                 i += 1
