@@ -195,7 +195,7 @@ class Component(KBCEnvHandler):
 
     def send_json_data(self, params, in_table, url, additional_request_params):
         logging.info(f"Processing table {in_table}")
-        conv = Csv2JsonConverter(delimit=params[KEY_DELIMITER], csv_file_path=in_table)
+        conv = Csv2JsonConverter(csv_file_path=in_table, delimiter=params[KEY_DELIMITER])
         # returns nested JSON schema for input.csv
         with open(in_table, mode='rt', encoding='utf-8') as in_file:
             reader = csv.reader(in_file, lineterminator='\n')
