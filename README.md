@@ -229,7 +229,8 @@ RESULT:
 
 A list of user parameters that is are accessible from within headers and additional parameters. This is useful for storing
 for example user credentials that are to be filled in a login form. Appending `#` sign before the attribute name will hash the value and store it securely
-within the configuration (recommended for passwords). The value may be scalar or a supported function. 
+within the configuration (recommended for passwords). The value may be scalar, supported function or another scalar user parameter 
+referenced by `{"attr":"par"}` object. 
 
 Example:
 
@@ -324,7 +325,7 @@ Place the required function object instead of the user parameter value.
 The function values may refer to another user params using `{"attr": "custom_par"}`
 
 **Function object**
-
+    
 ```json
 { "function": "string_to_date",
                 "args": [
