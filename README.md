@@ -561,7 +561,7 @@ Sent to `www.example.com/api/user/1?date=01.01.2020`
 Sent to `www.example.com/api/user/2?date=01.02.2020`
 
 
-# Configruation example
+# Configuration example
 
 ```json
 {
