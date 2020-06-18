@@ -98,6 +98,8 @@ class Component(KBCEnvHandler):
         iteration_mode = params.get(KEY_ITERATION_MODE)
         iteration_data = [{}]
         has_iterations = False
+
+        # TODO: add support for "chunked" iteration mode, sending requests in bulk grouped by iteration parameters
         if iteration_mode:
             has_iterations = True
             iteration_data = self._get_iter_data(in_table)
@@ -187,6 +189,8 @@ class Component(KBCEnvHandler):
 
         return out_file_path
 
+    # TODO: separate client and use the Client lib instance
+    # TODO: Add support for retry and backoff configuration
     def send_request(self, url, additional_params, method='POST'):
         s = requests.Session()
         r = self._requests_retry_session(session=s).request(method, url, **additional_params)

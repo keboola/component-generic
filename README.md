@@ -565,11 +565,30 @@ Sent to `www.example.com/api/user/2?date=01.02.2020`
 
 ```json
 {
-    "path": "https://example.com/test",
+    "path": "https://example.com/test/{{id}}",
     "mode": "JSON",
     "method": "POST",
+    "iteration_mode": {
+      "iteration_par_columns": [
+        "id"
+      ]
+    },
     "user_parameters": {
       "#token": "Bearer 123456",
+    "token_encoded": {
+      "function": "concat",
+      "args": [
+        "Basic ",
+        {
+          "function": "base64_encode",
+          "args": [
+            {
+              "attr": "#token"
+            }
+          ]
+        }
+      ]
+    },
       "date": {
         "function": "concat",
         "args": [
@@ -588,7 +607,7 @@ Sent to `www.example.com/api/user/2?date=01.02.2020`
       {
         "key": "Authorization",
         "value": {
-          "attr": "#token"
+          "attr": "token_encoded"
         }
       },
       {
@@ -607,7 +626,7 @@ Sent to `www.example.com/api/user/2?date=01.02.2020`
       }
     ],
     "json_data_config": {
-      "chunk_size": 5,
+      "chunk_size": 1,
       "delimiter": "_",
       "request_data_wrapper": "{ \"data\": {{data}}}",
       "infer_types_for_unknown": true,
