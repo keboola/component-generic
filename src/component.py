@@ -201,7 +201,7 @@ class Component(KBCEnvHandler):
             # convert rows
             # skip header
             next(reader, None)
-            col_types = params[KEY_COLUMN_TYPES]
+            col_types = params.get(KEY_COLUMN_TYPES, [])
             delimiter = params[KEY_DELIMITER]
             chunk_size = params.get(KEY_CHUNK_SIZE, None)
             i = 1
@@ -223,7 +223,7 @@ class Component(KBCEnvHandler):
         while row:  # outer loop, create chunks
             continue_it = True
             i = 0
-            json_string = '['
+            json_string = '[' if chunk_size > 1 else ''
             while continue_it:
                 i += 1
                 result = converter.convert_row(row=row,
@@ -240,7 +240,7 @@ class Component(KBCEnvHandler):
                 if continue_it:
                     json_string += ','
 
-            json_string += ']'
+            json_string += ']' if chunk_size > 1 else ''
             yield json.loads(json_string)
 
     def _wrap_json_payload(self, wrapper_template: str, data: dict):
