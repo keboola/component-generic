@@ -237,7 +237,14 @@ Example:
 ```json
 "user_parameters": {
       "#token": "Bearer 123456"
-      "param1": 1
+      "param1": 1,
+      "param2" { 
+         "function":"concat",
+         "args":[
+            "http://example.com/",
+            {"attr":"param1"}
+          ]
+      }
 }
 ```
 
