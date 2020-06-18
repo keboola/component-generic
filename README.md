@@ -319,6 +319,18 @@ use this setup:
     ]
 ```
 
+### Other supported parameters
+
+- **params:** (optional) Dictionary to be sent in the query string for the `Request`.
+- **cookies:** (optional) Dict object to send with the `Request`.
+- **timeout:** (optional) How long to wait for the server to send
+    data before giving up, as a float
+- **allow_redirects:** (optional) Set to `true` by default.
+- **proxies:** (optional) Dictionary mapping protocol or protocol and hostname to the URL of the proxy.
+- **verify:** (optional) Either a boolean, in which case it controls whether we verify
+    the server's TLS certificate, or a string, in which case it must be a path
+    to a CA bundle to use. Defaults to `true`.
+
 Note that the `date` value is taken from the `user_parameters`, which may be possibly dynamic function.
 
 
