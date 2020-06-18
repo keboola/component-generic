@@ -338,7 +338,7 @@ Nesting of functions is supported:
 ```json
 {
    "user_parameters":{
-      "url":{
+      "url":{ 
          "function":"concat",
          "args":[
             "http://example.com",
@@ -420,6 +420,33 @@ The above value is then available in step contexts as:
 
 ```json
 "url": {"attr": "url"}
+```
+
+### base64_encode
+
+Encodes string in BASE64
+
+
+
+**Example**
+
+```json
+{
+   "user_parameters":{
+      "token":{
+         "function":"base64_encode",
+         "args":[
+            "user:pass"
+         ]
+      }
+   }
+}
+```
+
+The above value is then available in contexts as:
+
+```json
+"token": {"attr": "token"}
 ```
 
 

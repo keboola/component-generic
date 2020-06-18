@@ -3,6 +3,7 @@ Template Component main class.
 
 '''
 
+import base64
 import csv
 import glob
 import gzip
@@ -338,6 +339,9 @@ class Component(KBCEnvHandler):
 
         def concat(self, *args):
             return ''.join(args)
+
+        def base64_encode(self, s):
+            return base64.b64encode(s.encode('utf-8')).decode('utf-8')
 
 
 """
