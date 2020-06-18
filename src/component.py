@@ -39,7 +39,8 @@ KEY_CHUNK_SIZE = 'chunk_size'
 STATUS_FORCELIST = (500, 501, 502, 503)
 MAX_RETRIES = 10
 
-PAR_ITERATIONS_FILE = 'iteration_params.csv'
+KEY_ITERATION_MODE = 'iteration_mode'
+KEY_ITERATION_PAR_COLUMNS = 'iteration_par_columns'
 # #### Keep for debug
 KEY_DEBUG = 'debug'
 
@@ -78,20 +79,9 @@ class Component(KBCEnvHandler):
         '''
         params = self.cfg_params  # noqa
 
-        iteration_pars_path = os.path.join(self.tables_in_path, PAR_ITERATIONS_FILE)
-        iteration_params = [{}]
-        has_iterations = False
-        if os.path.exists(iteration_pars_path):
-            has_iterations = True
-            iteration_params = self._get_iteration_params(iteration_pars_path)
-            logging.warning('Iteration parameters table found, running multiple iterations.')
-
         logging.info('Processing input mapping.')
 
         in_tables = glob.glob(self.tables_in_path + "/*[!.manifest]")
-        # remove params path
-        if has_iterations:
-            in_tables.remove(iteration_pars_path)
 
         if len(in_tables) == 0:
             logging.exception('There is no table specified on the input mapping! You must provide one input table!')
@@ -102,8 +92,23 @@ class Component(KBCEnvHandler):
 
         in_table = in_tables[0]
 
+        # iteration mode
+        iteration_mode = params.get(KEY_ITERATION_MODE)
+        iteration_data = [{}]
+        has_iterations = False
+        if iteration_mode:
+            has_iterations = True
+            iteration_data = self._get_iter_data(in_table)
+            logging.warning('Iteration parameters mode found, running multiple iterations.')
+
         # runing iterations
-        for index, iter_params in enumerate(iteration_params):
+        for index, iter_data_row in enumerate(iteration_data):
+            iter_params = {}
+            if has_iterations:
+                iter_params = self._cut_out_iteration_params(iter_data_row, iteration_mode)
+                # change source table with iteration data row
+                in_table = self._create_iteration_data_table(iter_data_row)
+
             headers_cfg = params.get(KEY_HEADERS, {}).copy()
             additional_params_cfg = params.get(KEY_ADDITIONAL_PARS, []).copy()
             # merge iter params
@@ -147,16 +152,37 @@ class Component(KBCEnvHandler):
 
         logging.info("Writer finished")
 
-    def _get_iteration_params(self, iteration_pars_path):
+    def _get_iter_data(self, iteration_pars_path):
         with open(iteration_pars_path, mode='rt', encoding='utf-8') as in_file:
             reader = csv.DictReader(in_file, lineterminator='\n')
             for r in reader:
                 yield r
 
+    def _cut_out_iteration_params(self, iter_data_row, iteration_mode):
+        '''
+        Cuts out iteration columns from data row and returns current iteration parameters values
+        :param iter_data_row:
+        :param iteration_mode:
+        :return:
+        '''
+        params = {}
+        for c in iteration_mode.get(KEY_ITERATION_PAR_COLUMNS):
+            params[c] = iter_data_row.pop(c)
+        return params
+
     def _apply_iteration_params(self, path, iter_params):
         for p in iter_params:
             path = path.replace('{{' + p + '}}', iter_params[p])
         return path
+
+    def _create_iteration_data_table(self, iter_data_row):
+        out_file_path = os.path.join(self.tables_in_path, 'iterationdata.csv')
+        with open(out_file_path, mode='w+', encoding='utf-8') as out_file:
+            writer = csv.DictWriter(out_file, fieldnames=iter_data_row.keys(), lineterminator='\n')
+            writer.writeheader()
+            writer.writerow(iter_data_row)
+
+        return out_file_path
 
     def send_request(self, url, additional_params, method='POST'):
         s = requests.Session()
