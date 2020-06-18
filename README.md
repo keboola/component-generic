@@ -318,7 +318,10 @@ Note that the `date` value is taken from the `user_parameters`, which may be pos
 
 The application support functions that may be applied on parameters in the configuration to get dynamic values.
 
-Currently these functions work only in the `user_parameters` and `headers` scope. Place the required function object instead of the user parameter value.
+Currently these functions work only in the `user_parameters` scope. 
+Place the required function object instead of the user parameter value.
+
+The function values may refer to another user params using `{"attr": "custom_par"}`
 
 **Function object**
 

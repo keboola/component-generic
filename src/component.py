@@ -120,7 +120,8 @@ class Component(KBCEnvHandler):
                 logging.info(f'Running iteration nr. {index}')
 
             logging.info("Building parameters..")
-
+            # evaluate user_params inside the user params itself
+            user_params = self._fill_in_user_parameters(user_params, user_params)
             headers_cfg = self._fill_in_user_parameters(headers_cfg, user_params)
             additional_params_cfg = self._fill_in_user_parameters(additional_params_cfg, user_params)
             # build headers
@@ -282,7 +283,7 @@ class Component(KBCEnvHandler):
         for key in user_param:
             if isinstance(user_param[key], dict):
                 # in case the parameter is function, validate, execute and replace value with result
-                user_param[key] = self._perform_custom_function(key, user_param[key])
+                user_param[key] = self._perform_custom_function(key, user_param[key], user_param)
 
             lookup_str = '{"attr":"' + key + '"}'
             steps_string = steps_string.replace(lookup_str, '"' + str(user_param[key]) + '"')
@@ -295,14 +296,16 @@ class Component(KBCEnvHandler):
                 'are not present in "user_parameters" field.'.format(non_matched))
         return new_steps
 
-    def _perform_custom_function(self, key, function_cfg):
+    def _perform_custom_function(self, key, function_cfg, user_params):
+        if function_cfg.get('attr'):
+            return user_params[function_cfg['attr']]
         if not function_cfg.get('function'):
             raise ValueError(
                 F'The user parameter {key} value is object and is not a valid function object: {function_cfg}')
         new_args = []
         for arg in function_cfg.get('args'):
             if isinstance(arg, dict):
-                arg = self._perform_custom_function(key, arg)
+                arg = self._perform_custom_function(key, arg, user_params)
             new_args.append(arg)
         function_cfg['args'] = new_args
 
