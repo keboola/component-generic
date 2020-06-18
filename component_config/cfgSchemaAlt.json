@@ -1,0 +1,206 @@
+{
+  "type": "object",
+  "title": "Parameters",
+  "format": "grid",
+  "required": [
+    "url",
+    "request_type",
+    "mode",
+    "headers",
+    "request_params",
+    "auth_method",
+    "json_data_mapping"
+  ],
+  "properties": {
+    "url": {
+      "type": "string",
+      "title": "Environment",
+      "format": "url",
+      "default": "https://myapi.com",
+      "minLength": 8,
+      "description": "Request URL",
+      "propertyOrder": 300
+    },
+    "mode": {
+      "enum": [
+        "JSON",
+        "Binary",
+        "Binary/Gz"
+      ],
+      "type": "string",
+      "title": "Mode",
+      "default": "POST",
+      "options": {
+        "grid_columns": 2
+      },
+      "description": "Data transfer mode.",
+      "propertyOrder": 410
+    },
+    "headers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "title": "Variable",
+        "properties": {
+          "Key": {
+            "type": "string",
+            "title": "Name"
+          },
+          "val": {
+            "type": "string",
+            "title": "Value",
+            "format": "json",
+            "options": {
+              "input_width": "400px",
+              "input_height": "150px"
+            }
+          }
+        }
+      },
+      "title": "Headers",
+      "format": "table",
+      "minLength": 1,
+      "uniqueItems": true,
+      "descriptions": "Variables required for the GraphQL Query",
+      "propertyOrder": 800
+    },
+    "user_params": {
+      "type": "object",
+      "title": "User Parameters",
+      "properties": {
+        "standard": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "Variable",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name"
+              },
+              "value": {
+                "type": "string",
+                "title": "Value",
+                "format": "json",
+                "options": {
+                  "input_width": "400px",
+                  "input_height": "150px"
+                }
+              }
+            }
+          },
+          "title": "Standard",
+          "format": "table",
+          "minLength": 1,
+          "uniqueItems": true,
+          "descriptions": "Standard params",
+          "propertyOrder": 2
+        },
+        "encrypted": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "title": "Variable",
+            "properties": {
+              "name": {
+                "type": "string",
+                "title": "Name"
+              },
+              "#value": {
+                "type": "string",
+                "title": "value",
+                "options": {
+                  "input_width": "400px"
+                }
+              }
+            }
+          },
+          "title": "Encrypted",
+          "format": "table",
+          "minLength": 1,
+          "uniqueItems": true,
+          "descriptions": "Encrypted params",
+          "propertyOrder": 1
+        }
+      },
+      "propertyOrder": 500
+    },
+    "request_type": {
+      "enum": [
+        "POST",
+        "PUT",
+        "PATCH"
+      ],
+      "type": "string",
+      "title": "Request Method",
+      "default": "POST",
+      "propertyOrder": 400
+    },
+    "request_params": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "title": "Variable",
+        "properties": {
+          "Key": {
+            "type": "string",
+            "title": "Name"
+          },
+          "val": {
+            "type": "string",
+            "title": "Value",
+            "format": "json",
+            "options": {
+              "input_width": "400px",
+              "input_height": "150px"
+            }
+          }
+        }
+      },
+      "title": "Request Parameters",
+      "format": "table",
+      "minLength": 1,
+      "uniqueItems": true,
+      "descriptions": "Additional requests parameters.",
+      "propertyOrder": 900
+    },
+    "json_data_mapping": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "title": "Variable",
+        "properties": {
+          "val": {
+            "type": "string",
+            "title": "VAl",
+            "format": "json",
+            "options": {
+              "input_width": "400px",
+              "input_height": "150px"
+            }
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "datatype": {
+            "enum": [
+              "STRING",
+              "INTEGER",
+              "FLOAT"
+            ],
+            "type": "string",
+            "title": "DataType",
+            "default": "STRING"
+          }
+        }
+      },
+      "title": "Json DATA mapping",
+      "format": "table",
+      "minLength": 1,
+      "uniqueItems": true,
+      "descriptions": "Data mapping to JSON variables",
+      "propertyOrder": 1000
+    }
+  }
+}
