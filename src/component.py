@@ -109,7 +109,7 @@ class Component(KBCEnvHandler):
         for index, iter_data_row in enumerate(iteration_data):
             iter_params = {}
             log_output = (index % 10) == 0
-            if has_iterations and log_output:
+            if has_iterations:
                 iter_params = self._cut_out_iteration_params(iter_data_row, iteration_mode)
                 # change source table with iteration data row
                 in_table = self._create_iteration_data_table(iter_data_row)
@@ -146,16 +146,16 @@ class Component(KBCEnvHandler):
 
             additional_params['headers'] = headers
 
-            if log_output:
+            if log_output and log_output:
                 logging.info(f'Sending data in mode: {params[KEY_MODE]}, using {params[KEY_METHOD]} method')
 
             if params[KEY_MODE] == 'JSON':
                 json_cfg = params[KEY_JSON_DATA_CFG]
                 json_cfg = self._fill_in_user_parameters(json_cfg, self.cfg_params.get(KEY_USER_PARS))
 
-                self.send_json_data(json_cfg, in_table, path, additional_params)
+                self.send_json_data(json_cfg, in_table, path, additional_params, log=not has_iterations)
             elif params[KEY_MODE] in ['BINARY', 'BINARY_GZ']:
-                self.send_binary_data(path, params[KEY_MODE], additional_params, in_table)
+                self.send_binary_data(path, params[KEY_MODE], additional_params, in_table, log=not has_iterations)
 
         logging.info("Writer finished")
 
@@ -202,8 +202,9 @@ class Component(KBCEnvHandler):
             logging.error(f'Sending request failed: {r.text}. {e}')
             sys.exit(1)
 
-    def send_json_data(self, params, in_table, url, additional_request_params):
-        logging.info(f"Processing table {in_table}")
+    def send_json_data(self, params, in_table, url, additional_request_params, log=True):
+        if log:
+            logging.info(f"Processing table {in_table}")
         conv = Csv2JsonConverter(csv_file_path=in_table, delimiter=params[KEY_DELIMITER])
         # returns nested JSON schema for input.csv
         with open(in_table, mode='rt', encoding='utf-8') as in_file:
@@ -217,8 +218,10 @@ class Component(KBCEnvHandler):
             i = 1
             for json_payload in self.convert_csv_2_json_in_chunks(reader, conv, col_types, delimiter,
                                                                   params.get(KEY_INFER_TYPES, False), chunk_size):
-                logging.info(f'Sending JSON data chunk {i}')
+                if log:
+                    logging.info(f'Sending JSON data chunk {i}')
                 json_payload = self._wrap_json_payload(params.get(KEY_REQUEST_DATA_WRAPPER, None), json_payload)
+
                 logging.debug(f'Sending  Payload: {json_payload} ')
                 additional_request_params['json'] = json_payload
                 self.send_request(url, additional_request_params, method=self.method)
