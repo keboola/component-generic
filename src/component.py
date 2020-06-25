@@ -108,7 +108,8 @@ class Component(KBCEnvHandler):
         # runing iterations
         for index, iter_data_row in enumerate(iteration_data):
             iter_params = {}
-            if has_iterations:
+            log_output = (index % 10) == 0
+            if has_iterations and log_output:
                 iter_params = self._cut_out_iteration_params(iter_data_row, iteration_mode)
                 # change source table with iteration data row
                 in_table = self._create_iteration_data_table(iter_data_row)
@@ -119,10 +120,10 @@ class Component(KBCEnvHandler):
             user_params = {**self.cfg_params.get(KEY_USER_PARS).copy(), **iter_params}
             path = params[KEY_PATH]
             path = self._apply_iteration_params(path, iter_params)
-            if has_iterations:
+            if has_iterations and log_output:
                 logging.info(f'Running iteration nr. {index}')
-
-            logging.info("Building parameters..")
+            if log_output:
+                logging.info("Building parameters..")
             # evaluate user_params inside the user params itself
             user_params = self._fill_in_user_parameters(user_params, user_params)
             headers_cfg = self._fill_in_user_parameters(headers_cfg, user_params)
@@ -145,7 +146,8 @@ class Component(KBCEnvHandler):
 
             additional_params['headers'] = headers
 
-            logging.info(f'Sending data in mode: {params[KEY_MODE]}, using {params[KEY_METHOD]} method')
+            if log_output:
+                logging.info(f'Sending data in mode: {params[KEY_MODE]}, using {params[KEY_METHOD]} method')
 
             if params[KEY_MODE] == 'JSON':
                 json_cfg = params[KEY_JSON_DATA_CFG]
