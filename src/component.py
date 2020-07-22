@@ -7,6 +7,7 @@ import base64
 import csv
 import glob
 import gzip
+import io
 import json
 import logging
 import shutil
@@ -157,7 +158,11 @@ class Component(KBCEnvHandler):
 
                 self.send_json_data(json_cfg, in_stream, path, additional_params, log=not has_iterations)
             elif params[KEY_MODE] in ['BINARY', 'BINARY_GZ']:
-                self.send_binary_data(path, params[KEY_MODE], additional_params, in_table)
+                if not in_stream:
+                    in_stream = open(in_table, mode='rb')
+                else:
+                    in_stream = io.BytesIO(bytes(in_stream.getvalue(), 'utf-8'))
+                self.send_binary_data(path, params[KEY_MODE], additional_params, in_stream, in_table)
 
         logging.info("Writer finished")
 
@@ -187,7 +192,6 @@ class Component(KBCEnvHandler):
     def _create_iteration_data_table(self, iter_data_row):
 
         # out_file_path = os.path.join(self.tables_in_path, 'iterationdata.csv')
-        import io
         output_stream = io.StringIO()
         writer = csv.DictWriter(output_stream, fieldnames=iter_data_row.keys(), lineterminator='\n')
         writer.writeheader()
@@ -228,6 +232,7 @@ class Component(KBCEnvHandler):
             additional_request_params['json'] = json_payload
             self.send_request(url, additional_request_params, method=self.method)
             i += 1
+        in_stream.close()
 
     def convert_csv_2_json_in_chunks(self, reader, converter: Csv2JsonConverter, col_types, delimiter,
                                      infer_undefined=False, chunk_size=None):
@@ -265,17 +270,15 @@ class Component(KBCEnvHandler):
         res = wrapper_template.replace('{{data}}', json.dumps(data))
         return json.loads(res)
 
-    def send_binary_data(self, url, mode, additional_request_params, in_table):
-        in_path = in_table
+    def send_binary_data(self, url, mode, additional_request_params, in_stream, in_path):
         if mode == 'BINARY_GZ':
-            with open(in_path, 'rb') as f_in:
-                with gzip.open(in_path + '.gz', 'wb') as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-            in_path = in_path + '.gz'
+            with gzip.open(in_path + '.gz', 'wb') as f_out:
+                shutil.copyfileobj(in_stream, f_out)
+            in_stream = open(in_path + '.gz', mode='rb')
 
-        with open(in_path, mode='rb') as in_file:
-            additional_request_params['data'] = in_file
-            self.send_request(url, additional_request_params, method=self.method)
+        additional_request_params['data'] = in_stream
+        self.send_request(url, additional_request_params, method=self.method)
+        in_stream.close()
 
     def _requests_retry_session(self, session=None):
         session = session or requests.Session()
