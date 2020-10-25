@@ -32,6 +32,7 @@ KEY_DELIMITER = 'delimiter'
 KEY_COLUMN_TYPES = 'column_types'
 KEY_REQUEST_DATA_WRAPPER = "request_data_wrapper"
 KEY_INFER_TYPES = "infer_types_for_unknown"
+KEY_NAMES_OVERRIDE = 'column_names_override'
 
 # additional request params
 KEY_HEADERS = 'headers'
@@ -157,6 +158,11 @@ class Component(KBCEnvHandler):
                     in_stream = open(in_table, mode='rt', encoding='utf-8')
 
                 self.send_json_data(json_cfg, in_stream, path, additional_params, log=not has_iterations)
+
+            elif params[KEY_MODE] == 'EMPTY_REQUEST':
+                # send empty request
+                self.send_request(path, additional_params, method=self.method)
+
             elif params[KEY_MODE] in ['BINARY', 'BINARY_GZ']:
                 if not in_stream:
                     in_stream = open(in_table, mode='rb')
@@ -218,12 +224,9 @@ class Component(KBCEnvHandler):
         # skip header
         header = next(reader, None)
         conv = Csv2JsonConverter(header, delimiter=params[KEY_DELIMITER])
-        col_types = params.get(KEY_COLUMN_TYPES, [])
-        delimiter = params[KEY_DELIMITER]
-        chunk_size = params.get(KEY_CHUNK_SIZE, None)
+
         i = 1
-        for json_payload in self.convert_csv_2_json_in_chunks(reader, conv, col_types, delimiter,
-                                                              params.get(KEY_INFER_TYPES, False), chunk_size):
+        for json_payload in self.convert_csv_2_json_in_chunks(reader, conv, params):
             if log:
                 logging.info(f'Sending JSON data chunk {i}')
             json_payload = self._wrap_json_payload(params.get(KEY_REQUEST_DATA_WRAPPER, None), json_payload)
@@ -234,8 +237,12 @@ class Component(KBCEnvHandler):
             i += 1
         in_stream.close()
 
-    def convert_csv_2_json_in_chunks(self, reader, converter: Csv2JsonConverter, col_types, delimiter,
-                                     infer_undefined=False, chunk_size=None):
+    def convert_csv_2_json_in_chunks(self, reader, converter: Csv2JsonConverter, params):
+        col_types = params.get(KEY_COLUMN_TYPES, [])
+        delimiter = params[KEY_DELIMITER]
+        chunk_size = params.get(KEY_CHUNK_SIZE, None)
+        infer_undefined = params.get(KEY_INFER_TYPES, False)
+        colname_override = params.get(KEY_NAMES_OVERRIDE, {})
         # fetch first row
         row = next(reader, None)
         if not row:
@@ -250,6 +257,7 @@ class Component(KBCEnvHandler):
                 result = converter.convert_row(row=row,
                                                coltypes=col_types,
                                                delimit=delimiter,
+                                               colname_override=colname_override,
                                                infer_undefined=infer_undefined)
 
                 json_string += json.dumps(result[0])
