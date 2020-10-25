@@ -40,9 +40,11 @@ Request method - POST, PUT, etc.
 
 Mode in what the data is transferred:
 
-- JSON - input table is converted into a JSON (see json_data_config)
-- BINARY - input table is sent as binary data (just like `curl --data-binary`)
-- BINRAY-GZ - input is sent as gzipped binary data
+- `JSON` - input table is converted into a JSON (see json_data_config)
+- `BINARY` - input table is sent as binary data (just like `curl --data-binary`)
+- `BINRAY`-GZ - input is sent as gzipped binary data
+- `EMPTY_REQUEST` - sends just empty requests. Usefull for triggerring webhooks, DELETE calls, etc. 
+As many requests as there are rows on the input are sent. Useful with `iteration_mode` enabled to trigger multiple endpoints.
 
 **NOTE** that you need to also setup the proper request headers manually.
 
@@ -89,7 +91,7 @@ This will cause each request being sent as:
 
 Optional configuration of column types. This version supports nesting (three levels) and three datatypes:
 
-- `bool` -  Boolean value  case-insensitive conversion: `t`, `true`, `yes` to `True` and `f`, `false`, `no` to `False`
+- `bool` -  Boolean value  case-insensitive conversion: `t`, `true`, `yes`, `1`,`"1"` to `True` and `f`, `false`, `no` to `False`
 - `string` - String
 - `number` - Number
 - `object` - Object - valid JSON array or JSON object, e.g. ["1","2"], {"key":"val"}
@@ -109,6 +111,22 @@ Columns **that do not have explicitly defined datatypes** will be converted to:
 
 Flag whether to infer datatypes automatically from data or not.
 
+### Column names
+
+You may override specific column names using the `column_names_override` parameter 
+to be able to generate fields with characters not supported in Storage column names.
+
+NOTE that this is applied **after** the column type definition, so refer to original name in the `column_types` config. 
+
+**Example:**
+
+```json
+"column_names_override": {
+          "field_id": "field-id",
+          "parent__test_dot": "test.dot"     
+      }
+```
+
 
 ### Example
 
@@ -126,24 +144,16 @@ SETUP:
 ```json
 "json_data_config": {
       "chunk_size": 5,
-      "delimiter": "_",
+      "delimiter": "__",
       "request_data_wrapper": "{ \"data\": {{data}}}",
       "infer_types_for_unknown": true,
       "column_types": [
-        {
-          "column": "bool_bool2",
-          "type": "number"
-        },
-        {
-          "column": "bool_bool1",
-          "type": "bool"
-        },
         {
           "column": "id",
           "type": "string"
         },
         {
-          "column": "field.id",
+          "column": "field_id",
           "type": "string"
         },
         {
@@ -151,26 +161,25 @@ SETUP:
           "type": "string"
         },
         {
-          "column": "time_submitted",
+          "column": "time__submitted",
           "type": "string"
         },
         {
-          "column": "id2",
-          "type": "string"
-        },
-        {
-          "column": "time_11",
+          "column": "time__reviewed__r2",
           "type": "bool"
         },
         {
-          "column": "time_reviewed_r2",
+          "column": "time__reviewed__r1__r1",
           "type": "bool"
         },
         {
-          "column": "time_reviewed_r1_r1",
+          "column": "time__reviewed__r1__r2",
           "type": "bool"
         }
-      ]
+      ],
+     "column_names_override" : {
+          "field_id": "field-id"     
+      }
     }
 ```
 
@@ -190,7 +199,7 @@ RESULT:
                 }
             },
             "ansconcat": "Jan Palek",
-            "field.id": "123456",
+            "field_id": "123456",
             "id": "https://keboolavancouver.typeform.com/to/XXXX?id=xxxxx"
         }, {
             "time": {
@@ -204,7 +213,7 @@ RESULT:
                 }
             },
             "ansconcat": "Jan Palek",
-            "field.id": "123456",
+            "field_id": "123456",
             "id": "https://keboolavancouver.typeform.com/to/XXXX?id=xxxxx"
         }, {
             "time": {
@@ -218,7 +227,7 @@ RESULT:
                 }
             },
             "ansconcat": "Jan Palek",
-            "field.id": "123456",
+            "field_id": "123456",
             "id": "https://keboolavancouver.typeform.com/to/XXXX?id=xxxxx"
         }
     ]

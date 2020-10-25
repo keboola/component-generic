@@ -7,9 +7,9 @@ import base64
 import csv
 import glob
 import gzip
+import io
 import json
 import logging
-import os
 import shutil
 import sys
 
@@ -32,6 +32,7 @@ KEY_DELIMITER = 'delimiter'
 KEY_COLUMN_TYPES = 'column_types'
 KEY_REQUEST_DATA_WRAPPER = "request_data_wrapper"
 KEY_INFER_TYPES = "infer_types_for_unknown"
+KEY_NAMES_OVERRIDE = 'column_names_override'
 
 # additional request params
 KEY_HEADERS = 'headers'
@@ -108,11 +109,12 @@ class Component(KBCEnvHandler):
         # runing iterations
         for index, iter_data_row in enumerate(iteration_data):
             iter_params = {}
-            log_output = (index % 10) == 0
+            log_output = (index % 50) == 0
+            in_stream = None
             if has_iterations:
                 iter_params = self._cut_out_iteration_params(iter_data_row, iteration_mode)
                 # change source table with iteration data row
-                in_table = self._create_iteration_data_table(iter_data_row)
+                in_stream = self._create_iteration_data_table(iter_data_row)
 
             headers_cfg = params.get(KEY_HEADERS, {}).copy()
             additional_params_cfg = params.get(KEY_ADDITIONAL_PARS, []).copy()
@@ -152,10 +154,21 @@ class Component(KBCEnvHandler):
             if params[KEY_MODE] == 'JSON':
                 json_cfg = params[KEY_JSON_DATA_CFG]
                 json_cfg = self._fill_in_user_parameters(json_cfg, self.cfg_params.get(KEY_USER_PARS))
+                if not in_stream:
+                    in_stream = open(in_table, mode='rt', encoding='utf-8')
 
-                self.send_json_data(json_cfg, in_table, path, additional_params, log=not has_iterations)
+                self.send_json_data(json_cfg, in_stream, path, additional_params, log=not has_iterations)
+
+            elif params[KEY_MODE] == 'EMPTY_REQUEST':
+                # send empty request
+                self.send_request(path, additional_params, method=self.method)
+
             elif params[KEY_MODE] in ['BINARY', 'BINARY_GZ']:
-                self.send_binary_data(path, params[KEY_MODE], additional_params, in_table, log=not has_iterations)
+                if not in_stream:
+                    in_stream = open(in_table, mode='rb')
+                else:
+                    in_stream = io.BytesIO(bytes(in_stream.getvalue(), 'utf-8'))
+                self.send_binary_data(path, params[KEY_MODE], additional_params, in_stream, in_table)
 
         logging.info("Writer finished")
 
@@ -183,13 +196,14 @@ class Component(KBCEnvHandler):
         return path
 
     def _create_iteration_data_table(self, iter_data_row):
-        out_file_path = os.path.join(self.tables_in_path, 'iterationdata.csv')
-        with open(out_file_path, mode='w+', encoding='utf-8') as out_file:
-            writer = csv.DictWriter(out_file, fieldnames=iter_data_row.keys(), lineterminator='\n')
-            writer.writeheader()
-            writer.writerow(iter_data_row)
 
-        return out_file_path
+        # out_file_path = os.path.join(self.tables_in_path, 'iterationdata.csv')
+        output_stream = io.StringIO()
+        writer = csv.DictWriter(output_stream, fieldnames=iter_data_row.keys(), lineterminator='\n')
+        writer.writeheader()
+        writer.writerow(iter_data_row)
+        output_stream.seek(0)
+        return output_stream
 
     # TODO: separate client and use the Client lib instance
     # TODO: Add support for retry and backoff configuration
@@ -202,33 +216,33 @@ class Component(KBCEnvHandler):
             logging.error(f'Sending request failed: {r.text}. {e}')
             sys.exit(1)
 
-    def send_json_data(self, params, in_table, url, additional_request_params, log=True):
-        if log:
-            logging.info(f"Processing table {in_table}")
-        conv = Csv2JsonConverter(csv_file_path=in_table, delimiter=params[KEY_DELIMITER])
+    def send_json_data(self, params, in_stream, url, additional_request_params, log=True):
         # returns nested JSON schema for input.csv
-        with open(in_table, mode='rt', encoding='utf-8') as in_file:
-            reader = csv.reader(in_file, lineterminator='\n')
-            # convert rows
-            # skip header
-            next(reader, None)
-            col_types = params.get(KEY_COLUMN_TYPES, [])
-            delimiter = params[KEY_DELIMITER]
-            chunk_size = params.get(KEY_CHUNK_SIZE, None)
-            i = 1
-            for json_payload in self.convert_csv_2_json_in_chunks(reader, conv, col_types, delimiter,
-                                                                  params.get(KEY_INFER_TYPES, False), chunk_size):
-                if log:
-                    logging.info(f'Sending JSON data chunk {i}')
-                json_payload = self._wrap_json_payload(params.get(KEY_REQUEST_DATA_WRAPPER, None), json_payload)
 
-                logging.debug(f'Sending  Payload: {json_payload} ')
-                additional_request_params['json'] = json_payload
-                self.send_request(url, additional_request_params, method=self.method)
-                i += 1
+        reader = csv.reader(in_stream, lineterminator='\n')
+        # convert rows
+        # skip header
+        header = next(reader, None)
+        conv = Csv2JsonConverter(header, delimiter=params[KEY_DELIMITER])
 
-    def convert_csv_2_json_in_chunks(self, reader, converter: Csv2JsonConverter, col_types, delimiter,
-                                     infer_undefined=False, chunk_size=None):
+        i = 1
+        for json_payload in self.convert_csv_2_json_in_chunks(reader, conv, params):
+            if log:
+                logging.info(f'Sending JSON data chunk {i}')
+            json_payload = self._wrap_json_payload(params.get(KEY_REQUEST_DATA_WRAPPER, None), json_payload)
+
+            logging.debug(f'Sending  Payload: {json_payload} ')
+            additional_request_params['json'] = json_payload
+            self.send_request(url, additional_request_params, method=self.method)
+            i += 1
+        in_stream.close()
+
+    def convert_csv_2_json_in_chunks(self, reader, converter: Csv2JsonConverter, params):
+        col_types = params.get(KEY_COLUMN_TYPES, [])
+        delimiter = params[KEY_DELIMITER]
+        chunk_size = params.get(KEY_CHUNK_SIZE, None)
+        infer_undefined = params.get(KEY_INFER_TYPES, False)
+        colname_override = params.get(KEY_NAMES_OVERRIDE, {})
         # fetch first row
         row = next(reader, None)
         if not row:
@@ -243,6 +257,7 @@ class Component(KBCEnvHandler):
                 result = converter.convert_row(row=row,
                                                coltypes=col_types,
                                                delimit=delimiter,
+                                               colname_override=colname_override,
                                                infer_undefined=infer_undefined)
 
                 json_string += json.dumps(result[0])
@@ -263,17 +278,15 @@ class Component(KBCEnvHandler):
         res = wrapper_template.replace('{{data}}', json.dumps(data))
         return json.loads(res)
 
-    def send_binary_data(self, url, mode, additional_request_params, in_table):
-        in_path = in_table
+    def send_binary_data(self, url, mode, additional_request_params, in_stream, in_path):
         if mode == 'BINARY_GZ':
-            with open(in_path, 'rb') as f_in:
-                with gzip.open(in_path + '.gz', 'wb') as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-            in_path = in_path + '.gz'
+            with gzip.open(in_path + '.gz', 'wb') as f_out:
+                shutil.copyfileobj(in_stream, f_out)
+            in_stream = open(in_path + '.gz', mode='rb')
 
-        with open(in_path, mode='rb') as in_file:
-            additional_request_params['data'] = in_file
-            self.send_request(url, additional_request_params, method=self.method)
+        additional_request_params['data'] = in_stream
+        self.send_request(url, additional_request_params, method=self.method)
+        in_stream.close()
 
     def _requests_retry_session(self, session=None):
         session = session or requests.Session()
