@@ -26,7 +26,7 @@ Or sending data with different user parameters that are present in the input tab
 
 An URL of the endpoint where the payload is being sent. 
 
-May contain placeholders for iterations wrapped in `{{}}`,e.g. `www.example.com/api/user/{{id}}`. 
+May contain placeholders for iterations wrapped in `[[}}`,e.g. `www.example.com/api/user/[[id}}`. 
 The parameter `id` needs to be specified in the `user_parameters` or in the source data itself if the column is set 
 as an iteration parameter column.
 
@@ -42,7 +42,7 @@ Mode in what the data is transferred:
 
 - `JSON` - input table is converted into a JSON (see json_data_config)
 - `BINARY` - input table is sent as binary data (just like `curl --data-binary`)
-- `BINRAY`-GZ - input is sent as gzipped binary data
+- `BINARY`-GZ - input is sent as gzipped binary data
 - `EMPTY_REQUEST` - sends just empty requests. Usefull for triggerring webhooks, DELETE calls, etc. 
 As many requests as there are rows on the input are sent. Useful with `iteration_mode` enabled to trigger multiple endpoints.
 
@@ -69,7 +69,7 @@ A character that is used for nesting. e.g. `_`
 
 A wrapper/mask of the parsed data. It needs to be json-encoded json. E.g
 
-`"request_data_wrapper": "{ \"data\": {{data}}}"`
+`"request_data_wrapper": "{ \"data\": [[data]]}"`
 
 This will cause each request being sent as:
 
@@ -145,7 +145,7 @@ SETUP:
 "json_data_config": {
       "chunk_size": 5,
       "delimiter": "__",
-      "request_data_wrapper": "{ \"data\": {{data}}}",
+      "request_data_wrapper": "{ \"data\": [[data]]}",
       "infer_types_for_unknown": true,
       "column_types": [
         {
@@ -489,7 +489,8 @@ columns in the source table that will be used as parameters for each request.
 
 These will be injected in:
 
-- Url if placeholder is specified, e.g.  `www.example.com/api/user/{{id}}`
+- Url if placeholder is specified, e.g.  `www.example.com/api/user/[[id]]`
+    - NOTE that `{{}}` notation is supported as well but incompatible with KBC configuration variables
 - `user_parameters` section, any existing parameters with a same name will be replaced by the value from the data. This 
 allows for example for changing request parameters dynamically `www.example.com/api/user?date=xx` where the `date` value is specified 
 like:
@@ -531,7 +532,7 @@ When setting iteration mode like this:
     }
 ```
 
-**url**: `www.example.com/api/user/{{id}}`
+**url**: `www.example.com/api/user/[[id]]`
 
 **request params:**
 
@@ -574,7 +575,7 @@ Sent to `www.example.com/api/user/2?date=01.02.2020`
 
 ```json
 {
-    "path": "https://example.com/test/{{id}}",
+    "path": "https://example.com/test/[[id]]",
     "mode": "JSON",
     "method": "POST",
     "iteration_mode": {
@@ -637,7 +638,7 @@ Sent to `www.example.com/api/user/2?date=01.02.2020`
     "json_data_config": {
       "chunk_size": 1,
       "delimiter": "_",
-      "request_data_wrapper": "{ \"data\": {{data}}}",
+      "request_data_wrapper": "{ \"data\": [[data]]}",
       "infer_types_for_unknown": true,
       "column_types": [
         {

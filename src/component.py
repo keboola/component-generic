@@ -192,7 +192,9 @@ class Component(KBCEnvHandler):
 
     def _apply_iteration_params(self, path, iter_params):
         for p in iter_params:
+            # backward compatibility with {{}} syntax
             path = path.replace('{{' + p + '}}', iter_params[p])
+            path = path.replace('[[' + p + ']]', iter_params[p])
         return path
 
     def _create_iteration_data_table(self, iter_data_row):
@@ -275,7 +277,9 @@ class Component(KBCEnvHandler):
     def _wrap_json_payload(self, wrapper_template: str, data: dict):
         if not wrapper_template:
             return data
+        # backward compatibility
         res = wrapper_template.replace('{{data}}', json.dumps(data))
+        res = res.replace('[[data]]', json.dumps(data))
         return json.loads(res)
 
     def send_binary_data(self, url, mode, additional_request_params, in_stream, in_path):
