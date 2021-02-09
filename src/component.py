@@ -7,6 +7,7 @@ import base64
 import csv
 import glob
 import gzip
+import hashlib
 import io
 import json
 import logging
@@ -376,6 +377,9 @@ class Component(KBCEnvHandler):
 
         def base64_encode(self, s):
             return base64.b64encode(s.encode('utf-8')).decode('utf-8')
+
+        def md5_encode(self, s):
+            return hashlib.md5(s.encode('utf-8')).hexdigest()
 
 
 """
