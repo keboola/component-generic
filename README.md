@@ -481,6 +481,33 @@ The above value is then available in contexts as:
 "token": {"attr": "token"}
 ```
 
+### md5_encode
+
+Encodes string in MD5
+
+
+
+**Example**
+
+```json
+{
+   "user_parameters":{
+      "token":{
+         "function":"md5_encode",
+         "args":[
+            "user:pass"
+         ]
+      }
+   }
+}
+```
+
+The above value is then available in contexts as:
+
+```json
+"token": {"attr": "token"}
+```
+
 
 ## iteration_mode
 
