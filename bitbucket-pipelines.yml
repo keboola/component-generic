@@ -52,6 +52,8 @@ pipelines:
             - docker run $APP_IMAGE flake8 /code/ --config=/code/flake8.cfg
             - echo "Running unit-tests..."
             - docker run $APP_IMAGE python -m unittest discover
+              # run functional tests
+            - docker-compose run functional-tests
             - echo "Preparing KBC test image"
             - docker pull quay.io/keboola/developer-portal-cli-v2:latest
             # push test image to ECR - uncomment when initialised
