@@ -1,0 +1,18 @@
+{
+  "parameters": {
+    "path": "http://mock-server:80/002-simple-json-chunked/orders",
+    "mode": "JSON",
+    "method": "POST",
+    "user_parameters": {},
+    "headers": [],
+    "additional_requests_pars": [],
+    "iteration_mode": {},
+    "json_data_config": {
+      "chunk_size": 1,
+      "delimiter": "__",
+      "infer_types_for_unknown": true
+    },
+    "debug": true
+  },
+  "image_parameters": {}
+}
