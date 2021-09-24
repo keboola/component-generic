@@ -1,0 +1,33 @@
+{
+  "parameters": {
+    "path": "http://mock-server:80/013-simple-json-function-concat/orders",
+    "mode": "JSON",
+    "method": "POST",
+    "user_parameters": {
+      "api_token": {
+        "function": "concat",
+        "args": [
+          "Bearer ",
+          "SOME_SECRET_TOKEN"
+        ]
+      }
+    },
+    "headers": [
+      {
+        "key": "tokenkey",
+        "value": {
+          "attr": "api_token"
+        }
+      }
+    ],
+    "additional_requests_pars": [],
+    "iteration_mode": {},
+    "json_data_config": {
+      "chunk_size": 2,
+      "delimiter": "__",
+      "infer_types_for_unknown": true
+    },
+    "debug": true
+  },
+  "image_parameters": {}
+}

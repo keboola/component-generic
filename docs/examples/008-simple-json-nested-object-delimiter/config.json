@@ -1,0 +1,19 @@
+{
+  "parameters": {
+    "path": "http://mock-server:80/008-simple-json-nested-object-delimiter/orders",
+    "mode": "JSON",
+    "method": "POST",
+    "user_parameters": {},
+    "headers": [],
+    "additional_requests_pars": [],
+    "iteration_mode": {},
+    "json_data_config": {
+      "chunk_size": 2,
+      "delimiter": "___",
+      "infer_types_for_unknown": true,
+      "column_types": []
+    },
+    "debug": true
+  },
+  "image_parameters": {}
+}

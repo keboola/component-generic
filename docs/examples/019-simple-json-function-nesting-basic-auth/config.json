@@ -1,0 +1,42 @@
+{
+  "parameters": {
+    "path": "http://mock-server:80/019-simple-json-function-nesting-basic-auth/orders",
+    "mode": "JSON",
+    "method": "POST",
+    "user_parameters": {
+      "#token": "user:password",
+      "header_value": {
+        "function": "concat",
+        "args": [
+          "Basic ",
+          {
+            "function": "base64_encode",
+            "args": [
+              {
+                "attr": "#token"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "headers": [
+      {
+        "key": "Authorization",
+        "value": {
+          "attr": "header_value"
+        }
+      }
+    ],
+    "additional_requests_pars": [],
+    "iteration_mode": {},
+    "json_data_config": {
+      "chunk_size": 2,
+      "delimiter": "__",
+      "infer_types_for_unknown": true
+    },
+    "debug": true
+  },
+  "image_parameters": {
+  }
+}

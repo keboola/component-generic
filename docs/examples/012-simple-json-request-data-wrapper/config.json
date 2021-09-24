@@ -1,21 +1,14 @@
 {
   "parameters": {
-    "path": "http://mock-server:80/009-simple-json-request-parameters/orders",
+    "path": "http://mock-server:80/012-simple-json-request-data-wrapper/orders",
     "mode": "JSON",
     "method": "POST",
     "user_parameters": {},
     "headers": [],
-    "additional_requests_pars": [
-      {
-        "key": "params",
-        "value": {
-          "date": "2020-01-01",
-          "dryrun": true
-        }
-      }
-    ],
+    "additional_requests_pars": [],
     "iteration_mode": {},
     "json_data_config": {
+      "request_data_wrapper": "{ \"wrapped_data\":{\"mode\":\"update\", \"data_payload\": [[data]]}}",
       "chunk_size": 2,
       "delimiter": "__",
       "infer_types_for_unknown": true
