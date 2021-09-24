@@ -1,0 +1,3 @@
+POST /007-simple-json-force-datatype/orders
+
+[{"id": 123, "name": "John Doe", "address_city": "London", "address_country": "UK", "address_street": "Whitehaven Mansions", "phone": "755123456"}, {"id": 234, "name": "Jane Doe", "address_city": "St Mary Mead", "address_country": "UK", "address_street": "High Street", "phone": "766123456"}]

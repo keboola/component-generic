@@ -1,0 +1,3 @@
+POST /011-simple-json-user-parameters-from-iterations/orders?order_id=123&user_name=John+Doe
+
+[{"address_city": "London", "address_country": "UK", "address_street": "Whitehaven Mansions"}]
