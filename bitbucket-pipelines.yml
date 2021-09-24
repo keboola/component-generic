@@ -27,6 +27,7 @@ pipelines:
     master:
       - step:
           script:
+            - apk update && apk add bash
             - export APP_IMAGE=$APP_IMAGE
             - docker build . --tag=$APP_IMAGE
             - docker images
@@ -46,6 +47,7 @@ pipelines:
       - step:
           deployment: production
           script:
+            - apk update && apk add bash
             - export APP_IMAGE=$APP_IMAGE
             - docker build . --tag=$APP_IMAGE
             - docker images
