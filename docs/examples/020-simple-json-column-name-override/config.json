@@ -1,0 +1,32 @@
+{
+  "parameters": {
+    "path": "http://mock-server:80/020-simple-json-column-name-override/orders",
+    "mode": "JSON",
+    "method": "POST",
+    "user_parameters": {},
+    "headers": [
+      {
+        "key": "Content-Type",
+        "value": "application/json"
+      },
+      {
+        "key": "token",
+        "value": "12345"
+      }
+    ],
+    "additional_requests_pars": [],
+    "iteration_mode": {},
+    "json_data_config": {
+      "chunk_size": 2,
+      "delimiter": "__",
+      "infer_types_for_unknown": true,
+      "column_names_override": {
+        "address_city": "address[city]",
+        "address_country": "address[country]",
+        "address_street": "address[street]"
+      }
+    },
+    "debug": true
+  },
+  "image_parameters": {}
+}

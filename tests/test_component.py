@@ -10,6 +10,7 @@ import mock
 from freezegun import freeze_time
 
 from component import Component
+from user_functions import UserFunctions
 
 
 class TestComponent(unittest.TestCase):
@@ -27,8 +28,7 @@ class TestComponent(unittest.TestCase):
 class TestUserFunctions(unittest.TestCase):
 
     def setUp(self) -> None:
-        comp = mock.Mock()
-        self.uf = Component.UserFunctions(comp())
+        self.uf = UserFunctions()
 
     def test_md5_hash(self):
         expected = '99aa06adaa9fdd8f506569e43c29ed25'

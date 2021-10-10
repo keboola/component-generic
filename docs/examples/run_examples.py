@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from runpy import run_path
 from typing import List
@@ -32,6 +33,7 @@ component_script = Path(__file__).absolute().parent.parent.parent.joinpath('src/
 
 for dir_path in test_dirs:
     print(f'Running example {Path(dir_path).name}/n')
+    sys.path.append(Path(component_script).parent.as_posix())
     run_component(component_script, dir_path)
 
 print('All tests finished successfully!')

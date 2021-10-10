@@ -41,6 +41,7 @@ Request method - POST, PUT, etc.
 Mode in what the data is transferred:
 
 - `JSON` - input table is converted into a JSON (see json_data_config)
+- `JSON_URL_ENCODED` - input table is converted into a JSON and sent as `application/x-www-form-urlencoded` (see json_data_config)
 - `BINARY` - input table is sent as binary data (just like `curl --data-binary`)
 - `BINARY`-GZ - input is sent as gzipped binary data
 - `EMPTY_REQUEST` - sends just empty requests. Usefull for triggerring webhooks, DELETE calls, etc. 
@@ -60,10 +61,14 @@ The nesting is done via delimiter character, e.g.
 
 If specified, the input is being sent in chunks. When set to `1` a single object is sent `{}`, when set to >1
  an array of objects is sent `[{}, {}]`
+ 
+ **NOTE** that in `JSON_URL_ENCODED` mode this value is always overridden to 1
 
 ### delimiter
 
 A character that is used for nesting. e.g. `_`
+
+**NOTE** that in `JSON_URL_ENCODED` you must note have nested objects.
 
 ### request_data_wrapper
 
@@ -86,6 +91,8 @@ This will cause each request being sent as:
 
 }
 ```
+
+ **NOTE** that in `JSON_URL_ENCODED` mode this value is ignored
 
 ### column_types
 
