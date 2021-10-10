@@ -218,6 +218,7 @@ class Component(ComponentBase):
         if self.content_type == 'JSON_URL_ENCODED':
             logging.warning('Running in JSON_URL_ENCODED mode, overriding chunk size to 1')
             params[KEY_CHUNK_SIZE] = 1
+            params[KEY_REQUEST_DATA_WRAPPER] = None
 
         params = self._fill_in_user_parameters(params, self.configuration.parameters.get(KEY_USER_PARS))
 
