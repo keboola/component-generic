@@ -113,7 +113,9 @@ class Component(ComponentBase):
                 in_stream = self._create_iteration_data_table(iter_data_row)
 
             # merge iter params
-            user_params = {**params.get(KEY_USER_PARS).copy(), **iter_params}
+            # fix KBC bug
+            user_params = params.get(KEY_USER_PARS) or {}
+            user_params = {**user_params.copy(), **iter_params}
             # evaluate user_params inside the user params itself
             user_params = self._fill_in_user_parameters(user_params, user_params)
 
