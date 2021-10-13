@@ -21,7 +21,7 @@ def _get_testing_dirs(data_dir: str) -> List:
 
 def run_component(component_script, data_folder):
     """
-    Runs a component script with a specified configuration
+    Runs a component script with a specified parameters
     """
     os.environ["KBC_DATADIR"] = data_folder
     run_path(component_script, run_name='__main__')

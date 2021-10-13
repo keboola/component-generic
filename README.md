@@ -458,7 +458,7 @@ The function takes an array of strings to concat as an argument
 The above value is then available in step contexts as:
 
 ```json
-"url": {"attr": "url"}
+"endpoint_path": {"attr": "endpoint_path"}
 ```
 
 ### base64_encode

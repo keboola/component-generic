@@ -11,13 +11,13 @@ import logging
 import os
 import shutil
 import tempfile
-from urllib.parse import urlparse
 
 from keboola.component import UserException
 from keboola.component.base import ComponentBase
 from nested_lookup import nested_lookup
 
-# configuration variables
+# parameters variables
+from configuration import WriterConfiguration, build_configuration, ValidationError
 from http_generic.client import GenericHttpClient
 from json_converter import JsonConverter
 from user_functions import UserFunctions
@@ -64,19 +64,30 @@ class Component(ComponentBase):
         self.user_functions = UserFunctions()
         self.validate_configuration_parameters(MANDATORY_PARS)
 
-        self.method = self.configuration.parameters.get(KEY_METHOD, 'POST')
-        path = self.configuration.parameters[KEY_PATH]
-        base_url = urlparse(path).netloc
-        self.endpoint = urlparse(path).path
-        self._client = GenericHttpClient(base_url=base_url)
+        self._configuration: WriterConfiguration = None
+        self._client: GenericHttpClient = None
 
-        self.content_type = self.configuration.parameters[KEY_MODE]
+    def init_component(self):
+        try:
+            self._configuration = build_configuration(self.configuration.parameters)
+        except ValidationError as e:
+            raise UserException(e) from e
+
+        # init client
+        # TODO: build authentication
+        self._client = GenericHttpClient(base_url=self._configuration.api.base_url,
+                                         default_params=self._configuration.api.default_query_parameters,
+                                         default_http_header=self._configuration.api.default_headers,
+                                         max_retries=self._configuration.api.retry_config.max_retries,
+                                         backoff_factor=self._configuration.api.retry_config.backoff_factor,
+                                         status_forcelist=self._configuration.api.retry_config.codes
+                                         )
 
     def run(self):
         '''
         Main execution code
         '''
-        params = self.configuration.parameters  # noqa
+        self.init_component()
 
         logging.info('Processing input mapping.')
 
@@ -91,8 +102,11 @@ class Component(ComponentBase):
 
         in_table = in_tables[0]
 
+        api_cfg = self._configuration.api
+        content_cfg = self._configuration.request_options.content
+        request_cfg = self._configuration.request_options.api_request
         # iteration mode
-        iteration_mode = params.get(KEY_ITERATION_MODE)
+        iteration_mode = content_cfg.iterate_by_columns
         iteration_data = [{}]
         has_iterations = False
 
@@ -101,64 +115,61 @@ class Component(ComponentBase):
             has_iterations = True
             iteration_data = self._get_iter_data(in_table.full_path)
             logging.warning('Iteration parameters mode found, running multiple iterations.')
-
+        logging.info(f'Sending data in content type: {content_cfg.content_type}, using {request_cfg.method} method')
         # runing iterations
         for index, iter_data_row in enumerate(iteration_data):
             iter_params = {}
             log_output = (index % 50) == 0
             in_stream = None
             if has_iterations:
-                iter_params = self._cut_out_iteration_params(iter_data_row, iteration_mode)
+                iter_params = self._cut_out_iteration_params(iter_data_row)
                 # change source table with iteration data row
                 in_stream = self._create_iteration_data_table(iter_data_row)
 
             # merge iter params
             # fix KBC bug
-            user_params = params.get(KEY_USER_PARS) or {}
+            user_params = self._configuration.user_parameters
             user_params = {**user_params.copy(), **iter_params}
             # evaluate user_params inside the user params itself
             user_params = self._fill_in_user_parameters(user_params, user_params)
 
             # build headers
-            headers_cfg = params.get(KEY_HEADERS, {}).copy()
-            headers_cfg = self._fill_in_user_parameters(headers_cfg, user_params)
-            headers = self._build_http_headers(headers_cfg)
+            headers = {**api_cfg.default_headers.copy(), **request_cfg.headers.copy()}
+            headers = self._fill_in_user_parameters(headers, user_params)
 
             # build additional parameters
-            additional_params_cfg = params.get(KEY_ADDITIONAL_PARS, []).copy()
-            additional_params_cfg = self._fill_in_user_parameters(additional_params_cfg, user_params)
-            additional_params = self._build_request_parameters(additional_params_cfg)
+            query_parameters = {**api_cfg.default_query_parameters.copy(), **request_cfg.query_parameters.copy()}
+            query_parameters = self._fill_in_user_parameters(query_parameters, user_params)
+            # additional_params = self._build_request_parameters(additional_params_cfg)
+            request_parameters = {'params': query_parameters,
+                                  'headers': headers}
 
-            additional_params['headers'] = headers
-
-            path = params[KEY_PATH]
-            path = self._apply_iteration_params(path, iter_params)
+            endpoint_path = request_cfg.endpoint_path
+            endpoint_path = self._apply_iteration_params(endpoint_path, iter_params)
+            self._client.base_url = self._apply_iteration_params(self._client.base_url, iter_params)
 
             if has_iterations and log_output:
                 logging.info(f'Running iteration nr. {index}')
             if log_output:
                 logging.info("Building parameters..")
 
-            if log_output and log_output:
-                logging.info(f'Sending data in mode: {params[KEY_MODE]}, using {params[KEY_METHOD]} method')
-
-            if self.content_type in ['JSON', 'JSON_URL_ENCODED']:
+            if content_cfg.content_type in ['JSON', 'JSON_URL_ENCODED']:
                 if not in_stream:
                     # if no iterations
                     in_stream = open(in_table.full_path, mode='rt', encoding='utf-8')
-                self.send_json_data(in_stream, path, additional_params, log=not has_iterations)
+                self.send_json_data(in_stream, endpoint_path, request_parameters, log=not has_iterations)
 
-            elif self.content_type == 'EMPTY_REQUEST':
+            elif content_cfg.content_type == 'EMPTY_REQUEST':
                 # send empty request
-                self._client.send_request(method=self.method, url=path, **additional_params)
+                self._client.send_request(method=request_cfg.method, endpoint_path=endpoint_path, **request_parameters)
 
-            elif self.content_type in ['BINARY', 'BINARY_GZ']:
+            elif content_cfg.content_type in ['BINARY', 'BINARY_GZ']:
                 if not in_stream:
                     in_stream = open(in_table.full_path, mode='rb')
                 else:
                     # in case of iteration mode
                     in_stream = io.BytesIO(bytes(in_stream.getvalue(), 'utf-8'))
-                self.send_binary_data(path, params[KEY_MODE], additional_params, in_stream, in_table.full_path)
+                self.send_binary_data(endpoint_path, request_parameters, in_stream)
 
         logging.info("Writer finished")
 
@@ -168,7 +179,7 @@ class Component(ComponentBase):
             for r in reader:
                 yield r
 
-    def _cut_out_iteration_params(self, iter_data_row, iteration_mode):
+    def _cut_out_iteration_params(self, iter_data_row):
         '''
         Cuts out iteration columns from data row and returns current iteration parameters values
         :param iter_data_row:
@@ -176,7 +187,7 @@ class Component(ComponentBase):
         :return:
         '''
         params = {}
-        for c in iteration_mode.get(KEY_ITERATION_PAR_COLUMNS):
+        for c in self._configuration.request_options.content.iterate_by_columns:
             params[c] = iter_data_row.pop(c)
         return params
 
@@ -196,13 +207,6 @@ class Component(ComponentBase):
         output_stream.seek(0)
         return output_stream
 
-    def _build_http_headers(self, headers_cfg):
-        headers = {}
-        if self.configuration.parameters.get(KEY_HEADERS):
-            for h in headers_cfg:
-                headers[h["key"]] = h["value"]
-        return headers
-
     def _build_request_parameters(self, request_configuration):
         request_parameters = {}
         for h in request_configuration:
@@ -215,21 +219,20 @@ class Component(ComponentBase):
 
     def send_json_data(self, in_stream, url, additional_request_params, log=True):
         # returns nested JSON schema for input.csv
-        params = self.configuration.parameters[KEY_JSON_DATA_CFG]
+        request_params = self._configuration.request_options
+        json_params = self._configuration.request_options.content.json_mapping
 
-        if self.content_type == 'JSON_URL_ENCODED':
+        if request_params.content.content_type == 'JSON_URL_ENCODED':
             logging.warning('Running in JSON_URL_ENCODED mode, overriding chunk size to 1')
-            params[KEY_CHUNK_SIZE] = 1
-            params[KEY_REQUEST_DATA_WRAPPER] = None
+            json_params.chunk_size = 1
+            json_params.request_data_wrapper = None
 
-        params = self._fill_in_user_parameters(params, self.configuration.parameters.get(KEY_USER_PARS))
-
-        converter = JsonConverter(nesting_delimiter=params[KEY_DELIMITER],
-                                  chunk_size=params.get(KEY_CHUNK_SIZE),
-                                  infer_data_types=params.get(KEY_INFER_TYPES, False),
-                                  column_data_types=params.get(KEY_COLUMN_TYPES),
-                                  column_name_override=params.get(KEY_NAMES_OVERRIDE, {}),
-                                  data_wrapper=params.get(KEY_REQUEST_DATA_WRAPPER))
+        converter = JsonConverter(nesting_delimiter=json_params.nesting_delimiter,
+                                  chunk_size=json_params.chunk_size,
+                                  infer_data_types=json_params.column_data_types.autodetect,
+                                  column_data_types=json_params.column_data_types.datatype_override,
+                                  column_name_override=json_params.column_names_override,
+                                  data_wrapper=json_params.request_data_wrapper)
 
         reader = csv.reader(in_stream, lineterminator='\n')
 
@@ -240,19 +243,21 @@ class Component(ComponentBase):
                 logging.info(f'Sending JSON data chunk {i}')
             logging.debug(f'Sending  Payload: {json_payload} ')
 
-            if self.content_type == 'JSON':
+            if request_params.content.content_type == 'JSON':
                 additional_request_params['json'] = json_payload
-            elif self.content_type == 'JSON_URL_ENCODED':
+            elif request_params.content.content_type == 'JSON_URL_ENCODED':
                 additional_request_params['data'] = json_payload
             else:
-                raise ValueError(f"Invalid JSON content type: {self.content_type}")
+                raise ValueError(f"Invalid JSON content type: {request_params.content.content_type}")
 
-            self._client.send_request(method=self.method, url=url, **additional_request_params)
+            self._client.send_request(method=self._configuration.request_options.api_request.method, endpoint_path=url,
+                                      **additional_request_params)
             i += 1
         in_stream.close()
 
-    def send_binary_data(self, url, mode, additional_request_params, in_stream, in_path):
-        if mode == 'BINARY_GZ':
+    def send_binary_data(self, url, additional_request_params, in_stream):
+        request_params = self._configuration.request_options
+        if request_params.content.content_type == 'BINARY_GZ':
             file = tempfile.mktemp()
             with gzip.open(file, 'wb') as f_out:
                 shutil.copyfileobj(in_stream, f_out)
@@ -260,7 +265,8 @@ class Component(ComponentBase):
             in_stream = open(file, mode='rb')
 
             additional_request_params['data'] = in_stream
-            self._client.send_request(method=self.method, url=url, **additional_request_params)
+            self._client.send_request(method=request_params.api_request.method, endpoint_path=url,
+                                      **additional_request_params)
             in_stream.close()
             os.remove(file)
 
@@ -280,7 +286,7 @@ class Component(ComponentBase):
 
         if non_matched:
             raise ValueError(
-                'Some user attributes [{}] specified in configuration '
+                'Some user attributes [{}] specified in parameters '
                 'are not present in "user_parameters" field.'.format(non_matched))
         return new_steps
 
@@ -306,7 +312,7 @@ class Component(ComponentBase):
 if __name__ == "__main__":
     try:
         comp = Component()
-        # this triggers the run method by default and is controlled by the configuration.action paramter
+        # this triggers the run method by default and is controlled by the parameters.action paramter
         comp.execute_action()
     except UserException as exc:
         logging.exception(exc)
