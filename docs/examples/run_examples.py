@@ -28,19 +28,21 @@ def run_component(component_script, data_folder):
 
 
 test_dirs = _get_testing_dirs(Path(__file__).parent.absolute().as_posix())
-test_dirs_legacy = _get_testing_dirs(Path(__file__).parent.joinpath('legacy_v1').absolute().as_posix())
+test_dirs_legacy = _get_testing_dirs(Path(__file__).parent.parent.joinpath('legacy_v1_examples').absolute().as_posix())
 
 component_script = Path(__file__).absolute().parent.parent.parent.joinpath('src/component.py').as_posix()
 
 print("Running legacy configurations")
+os.environ['KBC_EXAMPLES_DIR'] = '/legacy_examples/'
 for dir_path in test_dirs_legacy:
-    print(f'Running example {Path(dir_path).name}\n')
+    print(f'\n\nRunning example {Path(dir_path).name}\n')
     sys.path.append(Path(component_script).parent.as_posix())
     run_component(component_script, dir_path)
 
-print("Running v2 configurations")
+print("\n\n\n\nRunning v2 configurations")
+os.environ['KBC_EXAMPLES_DIR'] = '/examples/'
 for dir_path in test_dirs:
-    print(f'Running example {Path(dir_path).name}\n')
+    print(f'\n\nRunning example {Path(dir_path).name}\n')
     sys.path.append(Path(component_script).parent.as_posix())
     run_component(component_script, dir_path)
 

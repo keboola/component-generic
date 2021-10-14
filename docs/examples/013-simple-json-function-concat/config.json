@@ -1,1 +1,42 @@
-{"parameters": {"api": {"base_url": "http://mock-server:80"}, "user_parameters": {"api_token": {"function": "concat", "args": ["Bearer ", "SOME_SECRET_TOKEN"]}}, "request_options": {"api_request": {"method": "POST", "endpoint_path": "/013-simple-json-function-concat/orders", "headers": {"tokenkey": {"attr": "api_token"}}, "query_parameters": {}}, "content": {"content_type": "JSON", "json_mapping": {"nesting_delimiter": "__", "chunk_size": 2, "column_data_types": {"autodetect": true, "datatype_override": []}, "request_data_wrapper": "", "column_names_override": {}}, "iterate_by_columns": []}}}, "image_parameters": {}}
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80"
+    },
+    "user_parameters": {
+      "api_token": {
+        "function": "concat",
+        "args": [
+          "Bearer ",
+          "SOME_SECRET_TOKEN"
+        ]
+      }
+    },
+    "request_options": {
+      "api_request": {
+        "method": "POST",
+        "endpoint_path": "/013-simple-json-function-concat/orders",
+        "headers": {
+          "tokenkey": {
+            "attr": "api_token"
+          }
+        },
+        "query_parameters": {}
+      },
+      "content": {
+        "content_type": "JSON",
+        "json_mapping": {
+          "nesting_delimiter": "__",
+          "chunk_size": 2,
+          "column_data_types": {
+            "autodetect": true,
+            "datatype_override": []
+          },
+          "request_data_wrapper": "",
+          "column_names_override": {}
+        },
+        "iterate_by_columns": []
+      }
+    }
+  }
+}

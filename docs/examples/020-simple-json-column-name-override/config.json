@@ -1,1 +1,37 @@
-{"parameters": {"api": {"base_url": "http://mock-server:80"}, "user_parameters": {}, "request_options": {"api_request": {"method": "POST", "endpoint_path": "/020-simple-json-column-name-override/orders", "headers": {"Content-Type": "application/json", "token": "12345"}, "query_parameters": {}}, "content": {"content_type": "JSON", "json_mapping": {"nesting_delimiter": "__", "chunk_size": 2, "column_data_types": {"autodetect": true, "datatype_override": []}, "request_data_wrapper": "", "column_names_override": {"address_city": "address[city]", "address_country": "address[country]", "address_street": "address[street]"}}, "iterate_by_columns": []}}}, "image_parameters": {}}
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80"
+    },
+    "user_parameters": {},
+    "request_options": {
+      "api_request": {
+        "method": "POST",
+        "endpoint_path": "/020-simple-json-column-name-override/orders",
+        "headers": {
+          "Content-Type": "application/json",
+          "token": "12345"
+        },
+        "query_parameters": {}
+      },
+      "content": {
+        "content_type": "JSON",
+        "json_mapping": {
+          "nesting_delimiter": "__",
+          "chunk_size": 2,
+          "column_data_types": {
+            "autodetect": true,
+            "datatype_override": []
+          },
+          "request_data_wrapper": "",
+          "column_names_override": {
+            "address_city": "address[city]",
+            "address_country": "address[country]",
+            "address_street": "address[street]"
+          }
+        },
+        "iterate_by_columns": []
+      }
+    }
+  }
+}
