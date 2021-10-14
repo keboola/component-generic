@@ -1,0 +1,3 @@
+POST /020-simple-json-column-name-override/orders
+
+[{"id": 123, "name": "John Doe", "address[city]": "London", "address[country]": "UK", "address[street]": "Whitehaven Mansions"}, {"id": 234, "name": "Jane Doe", "address[city]": "St Mary Mead", "address[country]": "UK", "address[street]": "High Street"}]

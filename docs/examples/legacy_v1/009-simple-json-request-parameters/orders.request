@@ -1,0 +1,3 @@
+POST /009-simple-json-request-parameters/orders?date=2020-01-01&dryrun=True
+
+[{"id": 123, "name": "John Doe", "address_city": "London", "address_country": "UK", "address_street": "Whitehaven Mansions"}, {"id": 234, "name": "Jane Doe", "address_city": "St Mary Mead", "address_country": "UK", "address_street": "High Street"}]

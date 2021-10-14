@@ -1,0 +1,3 @@
+POST /021-simple-json-url-encoded-form/orders
+
+"id=123&name=John+Doe&address_city=London&address_country=UK&address_street=Whitehaven+Mansions"
