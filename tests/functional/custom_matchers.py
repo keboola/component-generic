@@ -113,7 +113,7 @@ def binary_gz_payload_matcher(params):
 def binary_payload_multi_matcher_to_string(strings_to_match):
     """
     Matches JSON encoded data
-    :param string_to_match: (dict[str]) string to match, per url
+    :param string_to_match: (dict[str]) string to match, per endpoint_path
     :return: (func) matcher
     """
 

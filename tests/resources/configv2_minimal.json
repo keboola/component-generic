@@ -1,0 +1,44 @@
+{
+  "api": {
+    "base_url": "http://test.com/api/"
+  },
+  "user_parameters": {
+    "debug": true,
+    "#token": "Bearer 123456",
+    "token_encoded": {
+      "function": "concat",
+      "args": [
+        "Basic ",
+        {
+          "function": "base64_encode",
+          "args": [
+            {
+              "attr": "#token"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "request_options": {
+    "api_request": {
+      "method": "POST",
+      "endpoint_path": "users/[[id]]",
+      "continue_on_failure": false
+    },
+    "content": {
+      "content_type": "JSON",
+      "iterate_by_columns": [
+        "id",
+        "date"
+      ],
+      "json_mapping": {
+        "chunk_size": 1,
+        "nesting_delimiter": "__",
+        "column_data_types": {
+          "autodetect": true
+        }
+      }
+    }
+  }
+}

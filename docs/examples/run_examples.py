@@ -16,23 +16,33 @@ def _get_testing_dirs(data_dir: str) -> List:
         list of paths inside directory
     """
     return [os.path.join(data_dir, o) for o in os.listdir(data_dir) if
-            os.path.isdir(os.path.join(data_dir, o)) and not o.startswith('_')]
+            os.path.isdir(os.path.join(data_dir, o)) and not o.startswith('_') and not o == 'legacy_v1']
 
 
 def run_component(component_script, data_folder):
     """
-    Runs a component script with a specified configuration
+    Runs a component script with a specified parameters
     """
     os.environ["KBC_DATADIR"] = data_folder
     run_path(component_script, run_name='__main__')
 
 
 test_dirs = _get_testing_dirs(Path(__file__).parent.absolute().as_posix())
+test_dirs_legacy = _get_testing_dirs(Path(__file__).parent.parent.joinpath('legacy_v1_examples').absolute().as_posix())
 
 component_script = Path(__file__).absolute().parent.parent.parent.joinpath('src/component.py').as_posix()
 
+print("Running legacy configurations")
+os.environ['KBC_EXAMPLES_DIR'] = '/legacy_examples/'
+for dir_path in test_dirs_legacy:
+    print(f'\n\nRunning example {Path(dir_path).name}\n')
+    sys.path.append(Path(component_script).parent.as_posix())
+    run_component(component_script, dir_path)
+
+print("\n\n\n\nRunning v2 configurations")
+os.environ['KBC_EXAMPLES_DIR'] = '/examples/'
 for dir_path in test_dirs:
-    print(f'Running example {Path(dir_path).name}/n')
+    print(f'\n\nRunning example {Path(dir_path).name}\n')
     sys.path.append(Path(component_script).parent.as_posix())
     run_component(component_script, dir_path)
 

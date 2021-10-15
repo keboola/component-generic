@@ -1,0 +1,73 @@
+{
+  "api": {
+    "base_url": "http://test.com/api/",
+    "authentication": {
+      "type": "basic",
+      "additional_parameters": {}
+    },
+    "default_query_parameters": {
+      "test": "test"
+    },
+    "default_headers": {
+      "Authorization": {
+        "attr": "token_encoded"
+      }
+    },
+    "retry_config": {
+      "max_retries": 10}
+  },
+  "user_parameters": {
+    "debug": true,
+    "#token": "Bearer 123456",
+    "token_encoded": {
+      "function": "concat",
+      "args": [
+        "Basic ",
+        {
+          "function": "base64_encode",
+          "args": [
+            {
+              "attr": "#token"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "request_options": {
+    "api_request": {
+      "method": "POST",
+      "headers": {
+        "endpoint_header": "eh"
+      },
+      "query_parameters": {
+        "date": "[[date]]"
+      },
+      "endpoint_path": "users/[[id]]",
+      "continue_on_failure": false
+    },
+    "content": {
+      "content_type": "JSON",
+      "iterate_by_columns": [
+        "id",
+        "date"
+      ],
+      "json_mapping": {
+        "chunk_size": 1,
+        "nesting_delimiter": "__",
+        "request_data_wrapper": "{ \"data\": [[data]]}",
+        "column_names_override": {
+          "column_a": "COLUMN|A"
+        },
+        "column_data_types": {
+          "autodetect": true,
+          "datatype_override": [
+            {
+              "column_a": "number"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

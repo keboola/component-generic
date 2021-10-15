@@ -1,23 +1,21 @@
 {
   "parameters": {
-    "path": "http://mock-server:80/011-simple-json-user-parameters-from-iterations/orders",
-    "mode": "JSON",
-    "method": "POST",
+    "api": {
+      "base_url": "http://mock-server:80"
+    },
     "user_parameters": {
       "#token": "123456"
     },
-    "headers": [
-      {
-        "key": "api-token",
-        "value": {
-          "attr": "#token"
-        }
-      }
-    ],
-    "additional_requests_pars": [
-      {
-        "key": "params",
-        "value": {
+    "request_options": {
+      "api_request": {
+        "method": "POST",
+        "endpoint_path": "/011-simple-json-user-parameters-from-iterations/orders",
+        "headers": {
+          "api-token": {
+            "attr": "#token"
+          }
+        },
+        "query_parameters": {
           "order_id": {
             "attr": "id"
           },
@@ -25,21 +23,24 @@
             "attr": "name"
           }
         }
+      },
+      "content": {
+        "content_type": "JSON",
+        "json_mapping": {
+          "nesting_delimiter": "__",
+          "chunk_size": 2,
+          "column_data_types": {
+            "autodetect": true,
+            "datatype_override": []
+          },
+          "request_data_wrapper": "",
+          "column_names_override": {}
+        },
+        "iterate_by_columns": [
+          "id",
+          "name"
+        ]
       }
-    ],
-    "iteration_mode": {
-      "iteration_par_columns": [
-        "id",
-        "name"
-      ]
-    },
-    "json_data_config": {
-      "chunk_size": 2,
-      "delimiter": "__",
-      "infer_types_for_unknown": true,
-      "column_types": []
-    },
-    "debug": true
-  },
-  "image_parameters": {}
+    }
+  }
 }

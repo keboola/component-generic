@@ -37,5 +37,6 @@ services:
       - "8888:80"
     volumes:
       - ./docs/examples:/examples/
+      - ./docs/legacy_v1_examples:/legacy_examples/
     environment:
       - KBC_EXAMPLES_DIR=/examples/
