@@ -1,0 +1,23 @@
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80"
+    },
+    "user_parameters": {},
+    "request_options": {
+      "api_request": {
+        "method": "DELETE",
+        "endpoint_path": "/022-empty-request-iterations-delete/orders/[[id]]",
+        "headers": {},
+        "query_parameters": {}
+      },
+      "content": {
+        "content_type": "EMPTY_REQUEST",
+        "json_mapping": null,
+        "iterate_by_columns": [
+          "id"
+        ]
+      }
+    }
+  }
+}

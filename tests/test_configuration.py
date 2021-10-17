@@ -32,7 +32,7 @@ class TestConfiguration(unittest.TestCase):
                             "attr": "token_encoded"
                         }
                         },
-                        retry_config={"max_retries": 10})
+                        retry_config=configuration.RetryConfig(max_retries=10))
         user_parameters = {
             "debug": True,
             "#token": "Bearer 123456",

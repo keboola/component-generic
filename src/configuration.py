@@ -252,13 +252,12 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     validate_configuration_v2(configuration_parameters)
 
     api_config_pars = configuration_parameters['api']
-    user_parameters = configuration_parameters['user_parameters']
+    user_parameters = configuration_parameters['user_parameters'] or {}
     request_options_pars = configuration_parameters['request_options']
 
-    validate_configuration_v2(configuration_parameters)
-
-    api_config = build_dataclass_from_dict(ApiConfig, api_config_pars)
-
+    api_config: ApiConfig = build_dataclass_from_dict(ApiConfig, api_config_pars)
+    retry_config = build_dataclass_from_dict(RetryConfig, api_config_pars.get('retry_config', {}))
+    api_config.retry_config = retry_config
     # Request options
     api_request = build_dataclass_from_dict(ApiRequest, request_options_pars['api_request'])
 
