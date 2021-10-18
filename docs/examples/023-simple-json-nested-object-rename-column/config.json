@@ -1,0 +1,25 @@
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80"
+    },
+    "user_parameters": {},
+    "request_options": {
+      "api_request": {
+        "method": "POST",
+        "endpoint_path": "/023-simple-json-nested-object-rename-column/orders"
+      },
+      "content": {
+        "content_type": "JSON",
+        "json_mapping": {
+          "nesting_delimiter": "___",
+          "chunk_size": 2,
+          "column_data_types": {
+            "autodetect": true
+          },
+          "column_names_override": {"address___city": "city.address"}
+        }
+      }
+    }
+  }
+}

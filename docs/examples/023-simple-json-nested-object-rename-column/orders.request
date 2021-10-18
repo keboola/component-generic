@@ -1,0 +1,3 @@
+POST /023-simple-json-nested-object-rename-column/orders
+
+[{"id": 123, "name": "John Doe", "address": {"country": "UK", "street": "Whitehaven Mansions", "city.address": "London"}, "phone": 755123456}, {"id": 234, "name": "Jane Doe", "address": {"country": "UK", "street": "High Street", "city.address": "St Mary Mead"}, "phone": 766123456}]
