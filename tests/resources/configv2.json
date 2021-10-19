@@ -2,8 +2,10 @@
   "api": {
     "base_url": "http://test.com/api/",
     "authentication": {
-      "type": "basic",
-      "additional_parameters": {}
+      "type": "SomeType",
+      "parameters": {
+        "test": "val"
+      }
     },
     "default_query_parameters": {
       "test": "test"
@@ -14,7 +16,8 @@
       }
     },
     "retry_config": {
-      "max_retries": 10}
+      "max_retries": 10
+    }
   },
   "user_parameters": {
     "debug": true,

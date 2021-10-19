@@ -20,10 +20,7 @@ class TestConfiguration(unittest.TestCase):
 
     def test_build_configuration_full(self):
         api = ApiConfig(base_url="http://test.com/api/",
-                        authentication={
-                            "type": "basic",
-                            "additional_parameters": {}
-                        },
+                        authentication=configuration.Authentication(type='SomeType', parameters={"test": "val"}),
                         default_query_parameters={
                             "test": "test"
                         },
