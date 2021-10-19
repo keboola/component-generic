@@ -262,8 +262,9 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     request_options_pars = configuration_parameters['request_options']
 
     api_config: ApiConfig = build_dataclass_from_dict(ApiConfig, api_config_pars)
-    api_config.authentication = build_dataclass_from_dict(Authentication, api_config_pars['authentication'])
-    
+    if api_config_pars.get('authentication'):
+        api_config.authentication = build_dataclass_from_dict(Authentication, api_config_pars['authentication'])
+
     retry_config = build_dataclass_from_dict(RetryConfig, api_config_pars.get('retry_config', {}))
     api_config.retry_config = retry_config
     # Request options
