@@ -39,11 +39,10 @@ class AuthMethodBuilder:
         """
         supported_actions = cls.get_methods()
 
-
         if method_name not in list(supported_actions.keys()):
             raise AuthBuilderError(f'{method_name} is not supported auth method, '
                                    f'supported values are: [{list(supported_actions.keys())}]')
-        parameters = cls._convert_secret_parameters(supported_actions[method_name], ** parameters)
+        parameters = cls._convert_secret_parameters(supported_actions[method_name], **parameters)
         cls._validate_method_arguments(supported_actions[method_name], **parameters)
 
         return supported_actions[method_name](**parameters)
@@ -83,8 +82,14 @@ class AuthMethodBuilder:
 class BasicHttp(AuthMethodBase):
 
     def __init__(self, username, __password):
-        self.__username = username
-        self.__password = __password
+        self.username = username
+        self.password = __password
 
     def login(self) -> Union[AuthBase, Callable]:
-        return HTTPBasicAuth(username=self.__username, password=self.__password)
+        return HTTPBasicAuth(username=self.username, password=self.password)
+
+    def __eq__(self, other):
+        return all([
+            self.username == getattr(other, 'username', None),
+            self.password == getattr(other, 'password', None)
+        ])
