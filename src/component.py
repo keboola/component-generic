@@ -18,6 +18,7 @@ from nested_lookup import nested_lookup
 
 # parameters variables
 from configuration import WriterConfiguration, build_configuration, ValidationError
+from http_generic.auth import AuthMethodBuilder, AuthBuilderError
 from http_generic.client import GenericHttpClient
 from json_converter import JsonConverter
 from user_functions import UserFunctions
@@ -72,6 +73,20 @@ class Component(ComponentBase):
         except ValidationError as e:
             raise UserException(e) from e
 
+        # build authentication method
+        auth_method = None
+        authentication = self._configuration.api.authentication
+        try:
+            if authentication:
+                # evaluate user_params inside the user params itself
+                user_params = self._configuration.user_parameters
+                user_params = self._fill_in_user_parameters(user_params, user_params)
+                # apply user parameters
+                auth_method_params = self._fill_in_user_parameters(authentication.parameters, user_params)
+                auth_method = AuthMethodBuilder.build(authentication.type, **auth_method_params)
+        except AuthBuilderError as e:
+            raise UserException(e) from e
+
         # init client
         # TODO: build authentication
         self._client = GenericHttpClient(base_url=self._configuration.api.base_url,
@@ -79,7 +94,8 @@ class Component(ComponentBase):
                                          default_http_header=self._configuration.api.default_headers,
                                          max_retries=self._configuration.api.retry_config.max_retries,
                                          backoff_factor=self._configuration.api.retry_config.backoff_factor,
-                                         status_forcelist=self._configuration.api.retry_config.codes
+                                         status_forcelist=self._configuration.api.retry_config.codes,
+                                         auth_method=auth_method
                                          )
 
     def run(self):
@@ -87,6 +103,8 @@ class Component(ComponentBase):
         Main execution code
         '''
         self.init_component()
+        # login if auth method specified
+        self._client.login()
 
         logging.info('Processing input mapping.')
 

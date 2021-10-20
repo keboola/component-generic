@@ -31,11 +31,17 @@ class RetryConfig(SubscriptableDataclass):
 
 
 @dataclass
+class Authentication(SubscriptableDataclass):
+    type: str
+    parameters: dict = field(default_factory=dict)
+
+
+@dataclass
 class ApiConfig(SubscriptableDataclass):
     base_url: str
     default_query_parameters: dict = field(default_factory=dict)
     default_headers: dict = field(default_factory=dict)
-    authentication: object = None
+    authentication: Authentication = None
     retry_config: RetryConfig = field(default_factory=RetryConfig)
 
 
@@ -256,6 +262,9 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     request_options_pars = configuration_parameters['request_options']
 
     api_config: ApiConfig = build_dataclass_from_dict(ApiConfig, api_config_pars)
+    if api_config_pars.get('authentication'):
+        api_config.authentication = build_dataclass_from_dict(Authentication, api_config_pars['authentication'])
+
     retry_config = build_dataclass_from_dict(RetryConfig, api_config_pars.get('retry_config', {}))
     api_config.retry_config = retry_config
     # Request options

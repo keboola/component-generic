@@ -27,7 +27,8 @@ class GenericHttpClient(HttpClient):
 
         """
         # perform login
-        self._auth = self._auth_method.login()
+        if self._auth_method:
+            self._auth = self._auth_method.login()
 
     def send_request(self, method, endpoint_path, **kwargs):
         self._request_raw(method=method, endpoint_path=endpoint_path, is_absolute_path=False, **kwargs)

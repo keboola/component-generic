@@ -1,0 +1,32 @@
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80",
+      "authentication": {
+        "type": "BasicHttp",
+        "parameters": {
+          "username": "test_user",
+          "#password": "pass"
+        }
+      }
+    },
+    "user_parameters": {},
+    "request_options": {
+      "api_request": {
+        "method": "POST",
+        "endpoint_path": "/024-simple-json-basic-http-auth/orders"
+      },
+      "content": {
+        "content_type": "JSON",
+        "json_mapping": {
+          "nesting_delimiter": "__",
+          "chunk_size": 2,
+          "column_data_types": {
+            "autodetect": true
+          }
+        }
+      }
+    }
+  }
+}
+
