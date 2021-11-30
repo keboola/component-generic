@@ -1,0 +1,20 @@
+{
+  "parameters": {
+    "path": "http://mock-server:80/026-json-iterations-query-params-in-path/orders/[[id]]?name=[[name]]&address_city=[[address_city]]",
+    "mode": "EMPTY_REQUEST",
+    "method": "POST",
+    "user_parameters": {},
+    "headers": [],
+    "additional_requests_pars": [],
+    "iteration_mode": {
+      "iteration_par_columns": [
+        "id",
+        "name",
+        "address_city"
+      ]
+    },
+    "json_data_config": {},
+    "debug": true
+  },
+  "image_parameters": {}
+}

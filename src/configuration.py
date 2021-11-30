@@ -145,7 +145,8 @@ def _is_v2_config(configuration: dict):
 def convert_to_v2(parameters: dict) -> dict:
     path = parameters[ConfigurationKeysV1.KEY_PATH.value]
     base_url = f"{urlparse(path).scheme}://{urlparse(path).netloc}"
-    endpoint_path = urlparse(path).path
+    parsed_url = urlparse(path)
+    endpoint_path = f"{parsed_url.path}?{parsed_url.query}"
     api_config_obj = {"base_url": base_url}
 
     headers = {}

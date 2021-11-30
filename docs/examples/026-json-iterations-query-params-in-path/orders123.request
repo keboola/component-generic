@@ -1,0 +1,1 @@
+POST /026-json-iterations-query-params-in-path/orders/123?name=John%20Doe&address_city=London
