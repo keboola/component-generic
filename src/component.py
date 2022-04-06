@@ -120,8 +120,8 @@ class Component(ComponentBase):
         in_table = in_tables[0]
 
         api_cfg = self._configuration.api
-        content_cfg = self._configuration.request_options.content
-        request_cfg = self._configuration.request_options.api_request
+        content_cfg = self._configuration.request_content
+        request_cfg = self._configuration.request_parameters
         # iteration mode
         iteration_mode = content_cfg.iterate_by_columns
         iteration_data = [{}]
@@ -204,7 +204,7 @@ class Component(ComponentBase):
         :return:
         '''
         params = {}
-        for c in self._configuration.request_options.content.iterate_by_columns:
+        for c in self._configuration.request_content.iterate_by_columns:
             params[c] = iter_data_row.pop(c)
         return params
 
@@ -236,10 +236,11 @@ class Component(ComponentBase):
 
     def send_json_data(self, in_stream, url, additional_request_params, log=True):
         # returns nested JSON schema for input.csv
-        request_params = self._configuration.request_options
-        json_params = self._configuration.request_options.content.json_mapping
+        request_parameters = self._configuration.request_parameters
+        request_content = self._configuration.request_content
+        json_params = request_content.json_mapping
 
-        if request_params.content.content_type == 'JSON_URL_ENCODED':
+        if request_content.content_type == 'JSON_URL_ENCODED':
             logging.warning('Running in JSON_URL_ENCODED mode, overriding chunk size to 1')
             json_params.chunk_size = 1
             json_params.request_data_wrapper = None
@@ -260,21 +261,22 @@ class Component(ComponentBase):
                 logging.info(f'Sending JSON data chunk {i}')
             logging.debug(f'Sending  Payload: {json_payload} ')
 
-            if request_params.content.content_type == 'JSON':
+            if request_content.content_type == 'JSON':
                 additional_request_params['json'] = json_payload
-            elif request_params.content.content_type == 'JSON_URL_ENCODED':
+            elif request_content.content_type == 'JSON_URL_ENCODED':
                 additional_request_params['data'] = json_payload
             else:
-                raise ValueError(f"Invalid JSON content type: {request_params.content.content_type}")
+                raise ValueError(f"Invalid JSON content type: {request_content.content_type}")
 
-            self._client.send_request(method=self._configuration.request_options.api_request.method, endpoint_path=url,
+            self._client.send_request(method=request_parameters.method, endpoint_path=url,
                                       **additional_request_params)
             i += 1
         in_stream.close()
 
     def send_binary_data(self, url, additional_request_params, in_stream):
-        request_params = self._configuration.request_options
-        if request_params.content.content_type == 'BINARY_GZ':
+        request_parameters = self._configuration.request_parameters
+        request_content = self._configuration.request_content
+        if request_content.content_type == 'BINARY_GZ':
             file = tempfile.mktemp()
             with gzip.open(file, 'wb') as f_out:
                 shutil.copyfileobj(in_stream, f_out)
@@ -282,7 +284,7 @@ class Component(ComponentBase):
             in_stream = open(file, mode='rb')
 
             additional_request_params['data'] = in_stream
-            self._client.send_request(method=request_params.api_request.method, endpoint_path=url,
+            self._client.send_request(method=request_parameters.method, endpoint_path=url,
                                       **additional_request_params)
             in_stream.close()
             os.remove(file)

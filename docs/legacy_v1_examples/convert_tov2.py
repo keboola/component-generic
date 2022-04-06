@@ -52,4 +52,4 @@ for dir_path in test_dirs:
         old_cfg['parameters'] = new_params
         json.dump(old_cfg, outp)
 
-print('All tests finished successfully!')
+print('All conversions finished successfully!')
