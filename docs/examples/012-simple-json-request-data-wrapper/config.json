@@ -1,1 +1,28 @@
-{"parameters": {"api": {"base_url": "http://mock-server:80"}, "user_parameters": {}, "request_parameters": {"method": "POST", "endpoint_path": "/012-simple-json-request-data-wrapper/orders", "headers": {}, "query_parameters": {}}, "request_content": {"content_type": "JSON", "json_mapping": {"nesting_delimiter": "__", "chunk_size": 2, "column_data_types": {"autodetect": true, "datatype_override": []}, "request_data_wrapper": "{ \"wrapped_data\":{\"mode\":\"update\", \"data_payload\": [[data]]}}", "column_names_override": {}}, "iterate_by_columns": []}}}
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80"
+    },
+    "user_parameters": {},
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/012-simple-json-request-data-wrapper/orders",
+      "headers": {},
+      "query_parameters": {}
+    },
+    "request_content": {
+      "content_type": "JSON",
+      "json_mapping": {
+        "nesting_delimiter": "__",
+        "chunk_size": 2,
+        "column_data_types": {
+          "autodetect": true,
+          "datatype_override": []
+        },
+        "request_data_wrapper": "{ \"wrapped_data\":{\"mode\":\"update\", \"data_payload\": [[data]]}}",
+        "column_names_override": {}
+      },
+      "iterate_by_columns": []
+    }
+  }
+}

@@ -1,1 +1,21 @@
-{"parameters": {"api": {"base_url": "http://mock-server:80"}, "user_parameters": {}, "request_parameters": {"method": "POST", "endpoint_path": "/004-empty-request-iteration/orders/[[id]]", "headers": {}, "query_parameters": {}}, "request_content": {"content_type": "EMPTY_REQUEST", "json_mapping": null, "iterate_by_columns": ["id"]}}}
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80"
+    },
+    "user_parameters": {},
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/004-empty-request-iteration/orders/[[id]]",
+      "headers": {},
+      "query_parameters": {}
+    },
+    "request_content": {
+      "content_type": "EMPTY_REQUEST",
+      "json_mapping": null,
+      "iterate_by_columns": [
+        "id"
+      ]
+    }
+  }
+}

@@ -1,1 +1,21 @@
-{"parameters": {"api": {"base_url": "http://mock-server:80"}, "user_parameters": {}, "request_parameters": {"method": "DELETE", "endpoint_path": "/022-empty-request-iterations-delete/orders/[[id]]", "headers": {}, "query_parameters": {}}, "request_content": {"content_type": "EMPTY_REQUEST", "json_mapping": null, "iterate_by_columns": ["id"]}}}
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80"
+    },
+    "user_parameters": {},
+    "request_parameters": {
+      "method": "DELETE",
+      "endpoint_path": "/022-empty-request-iterations-delete/orders/[[id]]",
+      "headers": {},
+      "query_parameters": {}
+    },
+    "request_content": {
+      "content_type": "EMPTY_REQUEST",
+      "json_mapping": null,
+      "iterate_by_columns": [
+        "id"
+      ]
+    }
+  }
+}

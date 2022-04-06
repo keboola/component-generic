@@ -1,1 +1,39 @@
-{"parameters": {"api": {"base_url": "http://mock-server:80"}, "user_parameters": {"encoded_value": {"function": "base64_encode", "args": ["SOME_VALUE_TO_ENCODE"]}}, "request_parameters": {"method": "POST", "endpoint_path": "/016-simple-json-function-base64-encode/orders", "headers": {"sign-hash": {"attr": "encoded_value"}}, "query_parameters": {}}, "request_content": {"content_type": "JSON", "json_mapping": {"nesting_delimiter": "__", "chunk_size": 2, "column_data_types": {"autodetect": true, "datatype_override": []}, "request_data_wrapper": "", "column_names_override": {}}, "iterate_by_columns": []}}}
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80"
+    },
+    "user_parameters": {
+      "encoded_value": {
+        "function": "base64_encode",
+        "args": [
+          "SOME_VALUE_TO_ENCODE"
+        ]
+      }
+    },
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/016-simple-json-function-base64-encode/orders",
+      "headers": {
+        "sign-hash": {
+          "attr": "encoded_value"
+        }
+      },
+      "query_parameters": {}
+    },
+    "request_content": {
+      "content_type": "JSON",
+      "json_mapping": {
+        "nesting_delimiter": "__",
+        "chunk_size": 2,
+        "column_data_types": {
+          "autodetect": true,
+          "datatype_override": []
+        },
+        "request_data_wrapper": "",
+        "column_names_override": {}
+      },
+      "iterate_by_columns": []
+    }
+  }
+}

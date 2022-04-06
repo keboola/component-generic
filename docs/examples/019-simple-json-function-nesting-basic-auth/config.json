@@ -1,1 +1,48 @@
-{"parameters": {"api": {"base_url": "http://mock-server:80"}, "user_parameters": {"#token": "user:password", "header_value": {"function": "concat", "args": ["Basic ", {"function": "base64_encode", "args": [{"attr": "#token"}]}]}}, "request_parameters": {"method": "POST", "endpoint_path": "/019-simple-json-function-nesting-basic-auth/orders", "headers": {"Authorization": {"attr": "header_value"}}, "query_parameters": {}}, "request_content": {"content_type": "JSON", "json_mapping": {"nesting_delimiter": "__", "chunk_size": 2, "column_data_types": {"autodetect": true, "datatype_override": []}, "request_data_wrapper": "", "column_names_override": {}}, "iterate_by_columns": []}}}
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80"
+    },
+    "user_parameters": {
+      "#token": "user:password",
+      "header_value": {
+        "function": "concat",
+        "args": [
+          "Basic ",
+          {
+            "function": "base64_encode",
+            "args": [
+              {
+                "attr": "#token"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/019-simple-json-function-nesting-basic-auth/orders",
+      "headers": {
+        "Authorization": {
+          "attr": "header_value"
+        }
+      },
+      "query_parameters": {}
+    },
+    "request_content": {
+      "content_type": "JSON",
+      "json_mapping": {
+        "nesting_delimiter": "__",
+        "chunk_size": 2,
+        "column_data_types": {
+          "autodetect": true,
+          "datatype_override": []
+        },
+        "request_data_wrapper": "",
+        "column_names_override": {}
+      },
+      "iterate_by_columns": []
+    }
+  }
+}
