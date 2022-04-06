@@ -4,8 +4,7 @@ import unittest
 from pathlib import Path
 
 import configuration
-from configuration import ApiRequest, ApiConfig, JsonMapping, WriterConfiguration, RequestContent, RequestOptions, \
-    ColumnDataTypes
+from configuration import ApiRequest, ApiConfig, JsonMapping, WriterConfiguration, RequestContent, ColumnDataTypes
 
 
 class TestConfiguration(unittest.TestCase):
@@ -47,31 +46,31 @@ class TestConfiguration(unittest.TestCase):
             }
         }
 
-        req_options = RequestOptions(
-            api_request=ApiRequest(method='POST',
-                                   endpoint_path="users/[[id]]",
-                                   headers={"endpoint_header": "eh"},
-                                   query_parameters={
-                                       "date": "[[date]]"
-                                   },
-                                   continue_on_failure=False),
-            content=RequestContent(content_type="JSON",
-                                   iterate_by_columns=["id", "date"],
-                                   json_mapping=JsonMapping(chunk_size=1,
-                                                            nesting_delimiter="__",
-                                                            request_data_wrapper="{ \"data\": [[data]]}",
-                                                            column_names_override={
-                                                                "column_a": "COLUMN|A"
-                                                            },
-                                                            column_data_types=ColumnDataTypes(
-                                                                autodetect=True,
-                                                                datatype_override=[
-                                                                    {
-                                                                        "column_a": "number"
-                                                                    }
-                                                                ]))))
+        api_request = ApiRequest(method='POST',
+                                 endpoint_path="users/[[id]]",
+                                 headers={"endpoint_header": "eh"},
+                                 query_parameters={
+                                     "date": "[[date]]"
+                                 },
+                                 continue_on_failure=False)
+        content = RequestContent(content_type="JSON",
+                                 iterate_by_columns=["id", "date"],
+                                 json_mapping=JsonMapping(chunk_size=1,
+                                                          nesting_delimiter="__",
+                                                          request_data_wrapper="{ \"data\": [[data]]}",
+                                                          column_names_override={
+                                                              "column_a": "COLUMN|A"
+                                                          },
+                                                          column_data_types=ColumnDataTypes(
+                                                              autodetect=True,
+                                                              datatype_override=[
+                                                                  {
+                                                                      "column_a": "number"
+                                                                  }
+                                                              ])))
 
-        expected_cfg = WriterConfiguration(api=api, request_options=req_options, user_parameters=user_parameters)
+        expected_cfg = WriterConfiguration(api=api, request_parameters=api_request, request_content=content,
+                                           user_parameters=user_parameters)
         with open(os.path.join(self.resource_dir, 'configv2.json')) as inp:
             config = json.load(inp)
             cfg_object = configuration.build_configuration(config)
@@ -95,20 +94,21 @@ class TestConfiguration(unittest.TestCase):
                 ]
             }
         }
-        req_options = RequestOptions(
-            api_request=ApiRequest(method='POST',
-                                   endpoint_path="users/[[id]]",
-                                   continue_on_failure=False),
-            content=RequestContent(content_type="JSON",
-                                   iterate_by_columns=["id", "date"],
-                                   json_mapping=JsonMapping(chunk_size=1,
-                                                            nesting_delimiter="__",
-                                                            column_data_types=ColumnDataTypes(
-                                                                autodetect=True))))
 
-        expected_cfg = WriterConfiguration(api=api, request_options=req_options, user_parameters=user_parameters)
+        api_request = ApiRequest(method='POST',
+                                 endpoint_path="users/[[id]]",
+                                 continue_on_failure=False)
+        content = RequestContent(content_type="JSON",
+                                 iterate_by_columns=["id", "date"],
+                                 json_mapping=JsonMapping(chunk_size=1,
+                                                          nesting_delimiter="__",
+                                                          column_data_types=ColumnDataTypes(
+                                                              autodetect=True)))
+
+        expected_cfg = WriterConfiguration(api=api, request_parameters=api_request, request_content=content,
+                                           user_parameters=user_parameters)
 
         with open(os.path.join(self.resource_dir, 'configv2_minimal.json')) as inp:
             config = json.load(inp)
-            cfg_object = configuration.build_configuration(config)
-            self.assertEqual(expected_cfg, cfg_object)
+        cfg_object = configuration.build_configuration(config)
+        self.assertEqual(expected_cfg, cfg_object)
