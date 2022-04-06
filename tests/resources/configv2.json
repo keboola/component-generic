@@ -37,39 +37,37 @@
       ]
     }
   },
-  "request_options": {
-    "api_request": {
-      "method": "POST",
-      "headers": {
-        "endpoint_header": "eh"
-      },
-      "query_parameters": {
-        "date": "[[date]]"
-      },
-      "endpoint_path": "users/[[id]]",
-      "continue_on_failure": false
+  "request_parameters": {
+    "method": "POST",
+    "headers": {
+      "endpoint_header": "eh"
     },
-    "content": {
-      "content_type": "JSON",
-      "iterate_by_columns": [
-        "id",
-        "date"
-      ],
-      "json_mapping": {
-        "chunk_size": 1,
-        "nesting_delimiter": "__",
-        "request_data_wrapper": "{ \"data\": [[data]]}",
-        "column_names_override": {
-          "column_a": "COLUMN|A"
-        },
-        "column_data_types": {
-          "autodetect": true,
-          "datatype_override": [
-            {
-              "column_a": "number"
-            }
-          ]
-        }
+    "query_parameters": {
+      "date": "[[date]]"
+    },
+    "endpoint_path": "users/[[id]]",
+    "continue_on_failure": false
+  },
+  "request_content": {
+    "content_type": "JSON",
+    "iterate_by_columns": [
+      "id",
+      "date"
+    ],
+    "json_mapping": {
+      "chunk_size": 1,
+      "nesting_delimiter": "__",
+      "request_data_wrapper": "{ \"data\": [[data]]}",
+      "column_names_override": {
+        "column_a": "COLUMN|A"
+      },
+      "column_data_types": {
+        "autodetect": true,
+        "datatype_override": [
+          {
+            "column_a": "number"
+          }
+        ]
       }
     }
   }

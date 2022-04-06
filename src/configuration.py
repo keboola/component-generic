@@ -83,18 +83,13 @@ class RequestContent(SubscriptableDataclass):
     iterate_by_columns: List[str] = None
 
 
-@dataclass
-class RequestOptions(SubscriptableDataclass):
-    api_request: ApiRequest
-    content: RequestContent
-
-
 # CONFIGURATION OBJECT
 
 @dataclass
 class WriterConfiguration(SubscriptableDataclass):
     api: ApiConfig
-    request_options: RequestOptions
+    request_parameters: ApiRequest
+    request_content: RequestContent
     user_parameters: dict = field(default_factory=dict)
 
 
@@ -191,8 +186,8 @@ def convert_to_v2(parameters: dict) -> dict:
 
     new_configuration = {"api": api_config_obj,
                          "user_parameters": user_parameters,
-                         "request_options": {"api_request": api_request_obj,
-                                             "content": req_content_obj}}
+                         "request_parameters": api_request_obj,
+                         "request_content": req_content_obj}
 
     return new_configuration
 
@@ -223,26 +218,26 @@ def validate_configuration_v2(configuration_parameters: dict):
 
     """
     api_config = configuration_parameters['api']
-    request_options = configuration_parameters['request_options']
+    request_parameters = configuration_parameters['request_parameters']
+    request_content = configuration_parameters['request_content']
 
     # validate
     validation_errors = []
     validation_errors.append(validate_required_parameters(ApiConfig, 'api', api_config))
     # TODO: validate authentication
-    validation_errors.append(validate_required_parameters(RequestOptions, 'request_options', request_options))
     validation_errors.append(
-        validate_required_parameters(ApiRequest, 'api_request', request_options.get('api_request', {})))
+        validate_required_parameters(ApiRequest, 'request_parameters', request_parameters))
     validation_errors.append(
-        validate_required_parameters(RequestContent, 'content', request_options.get('content', {})))
+        validate_required_parameters(RequestContent, 'request_content', request_content))
 
-    json_mapping = request_options.get('content', {}).get('json_mapping')
-    if request_options.get('content', {}) in ['JSON', 'JSON_URL_ENCODED'] and not json_mapping:
+    json_mapping = request_content.get('json_mapping')
+    if request_content['content_type'] in ['JSON', 'JSON_URL_ENCODED'] and not json_mapping:
         validation_errors.append(
-            f"The 'json_mapping' configuration is required in mode {request_options.get('content', {})}")
+            f"The 'json_mapping' configuration is required in mode {request_content['content_type']}")
 
-    if request_options.get('content', {}).get('json_mapping'):
+    if request_content.get('json_mapping'):
         validation_errors.append(
-            validate_required_parameters(JsonMapping, 'json_mapping', request_options['content']['json_mapping']))
+            validate_required_parameters(JsonMapping, 'json_mapping', request_content['json_mapping']))
 
     # remove empty
     validation_errors = [e for e in validation_errors if e]
@@ -260,7 +255,8 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
 
     api_config_pars = configuration_parameters['api']
     user_parameters = configuration_parameters['user_parameters'] or {}
-    request_options_pars = configuration_parameters['request_options']
+    request_parameters = configuration_parameters['request_parameters']
+    request_content = configuration_parameters['request_content']
 
     api_config: ApiConfig = build_dataclass_from_dict(ApiConfig, api_config_pars)
     if api_config_pars.get('authentication'):
@@ -269,16 +265,15 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     retry_config = build_dataclass_from_dict(RetryConfig, api_config_pars.get('retry_config', {}))
     api_config.retry_config = retry_config
     # Request options
-    api_request = build_dataclass_from_dict(ApiRequest, request_options_pars['api_request'])
+    api_request = build_dataclass_from_dict(ApiRequest, request_parameters)
 
-    content_pars = request_options_pars['content']
-    json_mapping_pars = content_pars.get('json_mapping')
+    json_mapping_pars = request_content.get('json_mapping')
     if json_mapping_pars:
         json_mapping_pars['column_data_types'] = build_dataclass_from_dict(ColumnDataTypes,
                                                                            json_mapping_pars['column_data_types'])
-        content_pars['json_mapping'] = build_dataclass_from_dict(JsonMapping, json_mapping_pars)
+        request_content['json_mapping'] = build_dataclass_from_dict(JsonMapping, json_mapping_pars)
 
-    content = build_dataclass_from_dict(RequestContent, content_pars)
-    request_options = RequestOptions(content=content, api_request=api_request)
+    content = build_dataclass_from_dict(RequestContent, request_content)
 
-    return WriterConfiguration(api=api_config, request_options=request_options, user_parameters=user_parameters)
+    return WriterConfiguration(api=api_config, request_parameters=api_request, request_content=content,
+                               user_parameters=user_parameters)
