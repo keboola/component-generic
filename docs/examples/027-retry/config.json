@@ -6,9 +6,7 @@
     "user_parameters": {},
     "request_parameters": {
       "method": "POST",
-      "endpoint_path": "/026-json-iterations-query-params-in-path/orders/[[id]]?name=[[name]]&address_city=[[address_city]]",
-      "headers": {},
-      "query_parameters": {}
+      "endpoint_path": "/027-retry/orders"
     },
     "request_content": {
       "content_type": "JSON",
@@ -16,17 +14,11 @@
         "nesting_delimiter": "__",
         "chunk_size": 2,
         "column_data_types": {
-          "autodetect": true,
-          "datatype_override": []
+          "autodetect": true
         },
         "request_data_wrapper": "",
         "column_names_override": {}
-      },
-      "iterate_by_columns": [
-        "id",
-        "name",
-        "address_city"
-      ]
+      }
     }
   }
 }

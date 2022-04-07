@@ -1,1 +1,1 @@
-DELETE /004-empty-request-iteration/orders/234
+DELETE /022-empty-request-iterations-delete/orders/234
