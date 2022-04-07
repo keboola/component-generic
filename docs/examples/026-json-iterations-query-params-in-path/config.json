@@ -6,7 +6,7 @@
     "user_parameters": {},
     "request_parameters": {
       "method": "POST",
-      "endpoint_path": "/005-json-iteration/orders/[[id]]?name=[[name]]&address_city=[[address_city]]",
+      "endpoint_path": "/026-json-iterations-query-params-in-path/orders/[[id]]?name=[[name]]&address_city=[[address_city]]",
       "headers": {},
       "query_parameters": {}
     },

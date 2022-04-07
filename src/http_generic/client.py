@@ -1,6 +1,8 @@
 from typing import Tuple, Dict
 
+from keboola.component import UserException
 from keboola.http_client import HttpClient
+from requests.exceptions import RetryError, HTTPError
 
 from http_generic.auth import AuthMethodBase
 
@@ -31,7 +33,13 @@ class GenericHttpClient(HttpClient):
             self._auth = self._auth_method.login()
 
     def send_request(self, method, endpoint_path, **kwargs):
-        self._request_raw(method=method, endpoint_path=endpoint_path, is_absolute_path=False, **kwargs)
+        try:
+            resp = self._request_raw(method=method, endpoint_path=endpoint_path, is_absolute_path=False, **kwargs)
+            resp.raise_for_status()
+        except RetryError as e:
+            raise UserException(f'Request "{method}: {endpoint_path}" failed, too many retries. {e}') from e
+        except HTTPError as e:
+            raise UserException(f'Request "{method}: {endpoint_path}" failed with non-retryable error. {e}') from e
 
     def build_url(self, base_url, endpoint_path):
         self.base_url = base_url

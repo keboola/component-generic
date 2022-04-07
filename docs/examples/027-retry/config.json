@@ -1,0 +1,31 @@
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80",
+      "retry_config": {
+        "max_retries": 2,
+        "codes": [
+          500
+        ]
+      }
+    },
+    "user_parameters": {},
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/027-retry/orders"
+    },
+    "request_content": {
+      "content_type": "JSON",
+      "json_mapping": {
+        "nesting_delimiter": "__",
+        "chunk_size": 2,
+        "column_data_types": {
+          "autodetect": true
+        },
+        "request_data_wrapper": "",
+        "column_names_override": {}
+      }
+    },
+    "debug": true
+  }
+}

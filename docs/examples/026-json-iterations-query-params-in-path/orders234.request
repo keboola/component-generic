@@ -1,1 +1,3 @@
 POST /026-json-iterations-query-params-in-path/orders/234?name=Jane%20Doe&address_city=St%20Mary%20Mead
+
+[{"address_country": "UK", "address_street": "High Street"}]
