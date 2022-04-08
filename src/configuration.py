@@ -247,6 +247,26 @@ def validate_configuration_v2(configuration_parameters: dict):
             f"Some required parameters fields are missing: {errors_string}")
 
 
+def _handle_kbc_error_converting_objects(configuration: WriterConfiguration):
+    """
+    INPLACE Fixes internal KBC bug old as time itself.
+    Args:
+        configuration:
+
+    Returns:
+
+    """
+    if isinstance(configuration.user_parameters, list):
+        configuration.user_parameters = {}
+
+    if configuration.request_parameters and isinstance(configuration.request_parameters.query_parameters, list):
+        configuration.request_parameters.query_parameters = {}
+
+    if configuration.request_content.json_mapping and isinstance(
+            configuration.request_content.json_mapping.column_names_override, list):
+        configuration.request_content.json_mapping.column_names_override = {}
+
+
 def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     if _is_v2_config(configuration_parameters):
         configuration_parameters = convert_to_v2(configuration_parameters)
@@ -275,5 +295,7 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
 
     content = build_dataclass_from_dict(RequestContent, request_content)
 
-    return WriterConfiguration(api=api_config, request_parameters=api_request, request_content=content,
-                               user_parameters=user_parameters)
+    result_config = WriterConfiguration(api=api_config, request_parameters=api_request, request_content=content,
+                                        user_parameters=user_parameters)
+    _handle_kbc_error_converting_objects(result_config)
+    return result_config
