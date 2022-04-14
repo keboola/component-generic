@@ -43,6 +43,7 @@ class ApiConfig(SubscriptableDataclass):
     default_headers: dict = field(default_factory=dict)
     authentication: Authentication = None
     retry_config: RetryConfig = field(default_factory=RetryConfig)
+    ssl_verification: bool = True
 
 
 @dataclass

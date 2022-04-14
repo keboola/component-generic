@@ -15,13 +15,15 @@ class GenericHttpClient(HttpClient):
                  auth_method: AuthMethodBase = None,
                  max_retries: int = 10,
                  backoff_factor: float = 0.3,
-                 status_forcelist: Tuple[int, ...] = (500, 502, 504)
+                 status_forcelist: Tuple[int, ...] = (500, 502, 504),
+                 **additional_request_params
                  ):
         super().__init__(base_url=base_url, max_retries=max_retries, backoff_factor=backoff_factor,
                          status_forcelist=status_forcelist,
                          default_http_header=default_http_header, default_params=default_params)
 
         self._auth_method = auth_method
+        self._additional_request_parameters = additional_request_params
 
     def login(self):
         """

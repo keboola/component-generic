@@ -88,7 +88,6 @@ class Component(ComponentBase):
             raise UserException(e) from e
 
         # init client
-        # TODO: build authentication
         self._client = GenericHttpClient(base_url=self._configuration.api.base_url,
                                          default_params=self._configuration.api.default_query_parameters,
                                          default_http_header=self._configuration.api.default_headers,
@@ -157,9 +156,11 @@ class Component(ComponentBase):
             # build additional parameters
             query_parameters = {**api_cfg.default_query_parameters.copy(), **request_cfg.query_parameters.copy()}
             query_parameters = self._fill_in_user_parameters(query_parameters, user_params)
+            ssl_verify = api_cfg.ssl_verification
             # additional_params = self._build_request_parameters(additional_params_cfg)
             request_parameters = {'params': query_parameters,
-                                  'headers': headers}
+                                  'headers': headers,
+                                  'verify': ssl_verify}
 
             endpoint_path = request_cfg.endpoint_path
             endpoint_path = self._apply_iteration_params(endpoint_path, iter_params)
