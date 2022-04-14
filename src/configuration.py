@@ -43,6 +43,7 @@ class ApiConfig(SubscriptableDataclass):
     default_headers: dict = field(default_factory=dict)
     authentication: Authentication = None
     retry_config: RetryConfig = field(default_factory=RetryConfig)
+    ssl_verification: bool = True
 
 
 @dataclass
@@ -152,6 +153,9 @@ def convert_to_v2(parameters: dict) -> dict:
     for p in parameters.get(ConfigurationKeysV1.KEY_ADDITIONAL_PARS.value, []):
         if p['key'] == 'params':
             query_parameters = p['value']
+
+        if p['key'] == 'verify':
+            api_config_obj['ssl_verify'] = p['value']
 
     api_request_obj = {"method": parameters[ConfigurationKeysV1.KEY_METHOD.value],
                        "endpoint_path": endpoint_path,
