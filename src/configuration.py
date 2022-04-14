@@ -154,6 +154,9 @@ def convert_to_v2(parameters: dict) -> dict:
         if p['key'] == 'params':
             query_parameters = p['value']
 
+        if p['key'] == 'verify':
+            api_config_obj['ssl_verify'] = p['value']
+
     api_request_obj = {"method": parameters[ConfigurationKeysV1.KEY_METHOD.value],
                        "endpoint_path": endpoint_path,
                        "headers": headers,
