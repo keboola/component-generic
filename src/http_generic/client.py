@@ -1,8 +1,11 @@
 from typing import Tuple, Dict
 
+import requests
 from keboola.component import UserException
 from keboola.http_client import HttpClient
-from requests.exceptions import RetryError, HTTPError
+from requests.adapters import HTTPAdapter
+from requests.exceptions import HTTPError
+from urllib3 import Retry
 
 from http_generic.auth import AuthMethodBase
 
@@ -36,11 +39,32 @@ class GenericHttpClient(HttpClient):
         try:
             resp = self._request_raw(method=method, endpoint_path=endpoint_path, is_absolute_path=False, **kwargs)
             resp.raise_for_status()
-        except RetryError as e:
-            raise UserException(f'Request "{method}: {endpoint_path}" failed, too many retries. {e}') from e
         except HTTPError as e:
-            raise UserException(f'Request "{method}: {endpoint_path}" failed with non-retryable error. {e}') from e
+            if e.response.status_code in self.status_forcelist:
+                message = f'Request "{method}: {endpoint_path}" failed, too many retries. ' \
+                          f'Status Code: {e.response.status_code}. Response: {e.response.text}'
+            else:
+                message = f'Request "{method}: {endpoint_path}" failed with non-retryable error. ' \
+                          f'Status Code: {e.response.status_code}. Response: {e.response.text}'
+            raise UserException(message) from e
 
     def build_url(self, base_url, endpoint_path):
         self.base_url = base_url
         return self._build_url(endpoint_path)
+
+    # override to continue on retry error
+    def _requests_retry_session(self, session=None):
+        session = session or requests.Session()
+        retry = Retry(
+            total=self.max_retries,
+            read=self.max_retries,
+            connect=self.max_retries,
+            backoff_factor=self.backoff_factor,
+            status_forcelist=self.status_forcelist,
+            allowed_methods=self.allowed_methods,
+            raise_on_status=False
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        return session

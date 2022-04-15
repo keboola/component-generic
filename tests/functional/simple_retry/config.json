@@ -1,0 +1,32 @@
+{
+  "parameters": {
+    "api": {
+      "base_url": "https://functional",
+      "retry_config": {
+        "max_retries": 2,
+        "backoff_factor": 0.3,
+        "codes": [
+          500,
+          429
+        ]
+      }
+    },
+    "user_parameters": {},
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/test"
+    },
+    "request_content": {
+      "content_type": "JSON",
+      "json_mapping": {
+        "nesting_delimiter": "__",
+        "chunk_size": 2,
+        "column_data_types": {
+          "autodetect": true
+        },
+        "request_data_wrapper": "",
+        "column_names_override": {}
+      }
+    }
+  }
+}
