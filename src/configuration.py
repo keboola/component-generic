@@ -139,6 +139,13 @@ def _is_v2_config(configuration: dict):
 
 
 def convert_to_v2(parameters: dict) -> dict:
+    root_errors = _validate_root_parameters(parameters,
+                                            [ConfigurationKeysV1.KEY_PATH.value,
+                                             ConfigurationKeysV1.KEY_MODE.value,
+                                             ConfigurationKeysV1.KEY_METHOD.value])
+    if root_errors:
+        raise ValidationError(root_errors)
+
     path = parameters[ConfigurationKeysV1.KEY_PATH.value]
     base_url = f"{urlparse(path).scheme}://{urlparse(path).netloc}"
     parsed_url = urlparse(path)
@@ -212,6 +219,17 @@ class ValidationError(Exception):
     pass
 
 
+def _validate_root_parameters(parameters: dict, required_parameters: List[str]):
+    missing_fields = []
+    for key in required_parameters:
+        if key not in parameters:
+            missing_fields.append(key)
+    error = ''
+    if missing_fields:
+        error = f'Configuration is missing following required fields: {missing_fields}'
+    return error
+
+
 def validate_configuration_v2(configuration_parameters: dict):
     """
     Validate configuration parameters
@@ -221,18 +239,19 @@ def validate_configuration_v2(configuration_parameters: dict):
     Raises: ValidationError
 
     """
+    root_errors = _validate_root_parameters(configuration_parameters, ['api', 'request_content', 'request_parameters'])
+    if root_errors:
+        raise ValidationError(root_errors)
+
     api_config = configuration_parameters['api']
     request_parameters = configuration_parameters['request_parameters']
     request_content = configuration_parameters['request_content']
 
     # validate
-    validation_errors = []
-    validation_errors.append(validate_required_parameters(ApiConfig, 'api', api_config))
+    validation_errors = [validate_required_parameters(ApiConfig, 'api', api_config),
+                         validate_required_parameters(ApiRequest, 'request_parameters', request_parameters),
+                         validate_required_parameters(RequestContent, 'request_content', request_content)]
     # TODO: validate authentication
-    validation_errors.append(
-        validate_required_parameters(ApiRequest, 'request_parameters', request_parameters))
-    validation_errors.append(
-        validate_required_parameters(RequestContent, 'request_content', request_content))
 
     json_mapping = request_content.get('json_mapping')
     if request_content['content_type'] in ['JSON', 'JSON_URL_ENCODED'] and not json_mapping:
