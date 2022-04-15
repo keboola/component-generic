@@ -101,6 +101,24 @@ class TestComponent(unittest.TestCase):
         except UserException as e:
             self.assertIn('Configuration is missing following required fields:', str(e))
 
+    @responses.activate
+    def test_log_error_response_content(self):
+        test_name = 'simple_retry'
+        comp = self._get_test_component(test_name)
+        response_text = '{"error": "Request invalid"}'
+
+        responses.add(
+            responses.POST,
+            url="https://functional/test",
+            body=response_text,
+            status=400
+
+        )
+        try:
+            comp.run()
+        except UserException as e:
+            self.assertIn(response_text, str(e))
+
 
 if __name__ == "__main__":
     unittest.main()
