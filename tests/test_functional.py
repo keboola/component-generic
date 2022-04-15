@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 import responses
+from keboola.component import UserException
 
 from component import Component
 from tests.functional.custom_matchers import binary_payload_matcher, binary_gz_payload_matcher, \
@@ -91,6 +92,14 @@ class TestComponent(unittest.TestCase):
             ]
         )
         comp.run()
+
+    def test_invalid_config_ue(self):
+        test_name = 'invalid_config'
+        comp = self._get_test_component(test_name)
+        try:
+            comp.run()
+        except UserException as e:
+            self.assertIn('Configuration is missing following required fields:', str(e))
 
 
 if __name__ == "__main__":
