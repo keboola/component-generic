@@ -1,0 +1,39 @@
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80",
+      "default_headers": {
+        "api-token": {
+          "attr": "#token"
+        }
+      },
+      "default_query_parameters": {
+        "date": {
+          "attr": "date"
+        }
+      }
+    },
+    "user_parameters": {
+      "#token": "123456",
+      "date": "2021-01-01"
+    },
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/028-simple-json-user-parameters-api-section/orders"
+    },
+    "request_content": {
+      "content_type": "JSON",
+      "json_mapping": {
+        "nesting_delimiter": "__",
+        "chunk_size": 2,
+        "column_data_types": {
+          "autodetect": true,
+          "datatype_override": []
+        },
+        "request_data_wrapper": "",
+        "column_names_override": {}
+      },
+      "iterate_by_columns": []
+    }
+  }
+}
