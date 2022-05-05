@@ -89,8 +89,6 @@ class Component(ComponentBase):
 
         # init client
         self._client = GenericHttpClient(base_url=self._configuration.api.base_url,
-                                         default_params=self._configuration.api.default_query_parameters,
-                                         default_http_header=self._configuration.api.default_headers,
                                          max_retries=self._configuration.api.retry_config.max_retries,
                                          backoff_factor=self._configuration.api.retry_config.backoff_factor,
                                          status_forcelist=self._configuration.api.retry_config.codes,
@@ -151,7 +149,7 @@ class Component(ComponentBase):
 
             # build headers
             headers = {**api_cfg.default_headers.copy(), **request_cfg.headers.copy()}
-            headers = self._fill_in_user_parameters(headers, user_params)
+            new_headers = self._fill_in_user_parameters(headers, user_params)
 
             # build additional parameters
             query_parameters = {**api_cfg.default_query_parameters.copy(), **request_cfg.query_parameters.copy()}
@@ -159,7 +157,7 @@ class Component(ComponentBase):
             ssl_verify = api_cfg.ssl_verification
             # additional_params = self._build_request_parameters(additional_params_cfg)
             request_parameters = {'params': query_parameters,
-                                  'headers': headers,
+                                  'headers': new_headers,
                                   'verify': ssl_verify}
 
             endpoint_path = request_cfg.endpoint_path
