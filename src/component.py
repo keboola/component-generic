@@ -204,7 +204,11 @@ class Component(ComponentBase):
         '''
         params = {}
         for c in self._configuration.request_content.iterate_by_columns:
-            params[c] = iter_data_row.pop(c)
+            try:
+                params[c] = iter_data_row.pop(c)
+            except KeyError:
+                raise UserException(f'The key: "{c}" specified in the iterate_by_columns parameter '
+                                    f'does not exist in the data, please check for typos / case.')
         return params
 
     def _apply_iteration_params(self, path, iter_params):
