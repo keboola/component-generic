@@ -7,6 +7,7 @@ import responses
 from keboola.component import UserException
 
 from component import Component
+from http_generic.client import ClientException
 from tests.functional.custom_matchers import binary_payload_matcher, binary_gz_payload_matcher, \
     binary_payload_multi_matcher_to_string
 
@@ -116,7 +117,7 @@ class TestComponent(unittest.TestCase):
         )
         try:
             comp.run()
-        except UserException as e:
+        except ClientException as e:
             self.assertIn(response_text, str(e))
 
 
