@@ -125,8 +125,8 @@ class Component(ComponentBase):
                                          auth_method=auth_method
                                          )
         # init log writer
-        log_out = self.create_out_table_definition('result_log.csv', incremental=True,
-                                                   primary_key=['row_id', 'status', 'timestamp'])
+        log_out = self.create_out_table_definition('result_log.csv', incremental=False,
+                                                   primary_key=['row_id', 'status'])
         self._log_writer = LogWriter(log_out)
 
     def run(self):
