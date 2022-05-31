@@ -1,1 +1,1 @@
-{"primary_key": ["row_id", "status", "timestamp"], "incremental": true, "metadata": [], "column_metadata": {}}
+{"primary_key": ["row_id", "status"], "metadata": [], "column_metadata": {}}

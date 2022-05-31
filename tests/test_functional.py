@@ -120,6 +120,34 @@ class TestComponent(unittest.TestCase):
         except ClientException as e:
             self.assertIn(response_text, str(e))
 
+    # @responses.activate
+    # @patch('component.Component.FUNCTION_TIMEOUT', 5)
+    # def test_timeout_warning(self):
+    #
+    #     sys.modules['component'] = Component()
+    #     test_name = 'simple_retry'
+    #     test_dir = os.path.join(self.tests_dir, test_name)
+    #     os.environ['KBC_DATADIR'] = test_dir
+    #     comp = Component()
+    #     comp.FUNCTION_TIMEOUT = 5
+    #
+    #     def request_callback(request):
+    #         time.sleep(10)
+    #         resp_body = '{"error": "Request invalid"}'
+    #         return (200, {}, resp_body)
+    #
+    #     responses.add_callback(
+    #         responses.POST,
+    #         url="https://functional/test",
+    #         callback=request_callback
+    #
+    #     )
+    #     with self.assertLogs() as captured:
+    #         comp.run()
+    #         messages = [rec.getMessage() for rec in captured.records]
+    #         self.assertTrue(
+    #             f'The component execution exceeded the timeout of {comp.FUNCTION_TIMEOUT}s' in messages)
+
 
 if __name__ == "__main__":
     unittest.main()

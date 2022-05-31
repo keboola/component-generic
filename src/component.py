@@ -19,6 +19,7 @@ from keboola.component import UserException
 from keboola.component.base import ComponentBase
 from keboola.component.dao import TableDefinition
 from nested_lookup import nested_lookup
+from wrapt_timeout_decorator import timeout
 
 # parameters variables
 from configuration import WriterConfiguration, build_configuration, ValidationError
@@ -86,6 +87,7 @@ class LogWriter:
 
 
 class Component(ComponentBase):
+    FUNCTION_TIMEOUT = 53900
 
     def __init__(self):
         super().__init__()
@@ -202,27 +204,29 @@ class Component(ComponentBase):
                 logging.info(f'Running iteration nr. {index}')
             if log_output:
                 logging.info("Building parameters..")
+            try:
+                if content_cfg.content_type in ['JSON', 'JSON_URL_ENCODED']:
+                    if not in_stream:
+                        # if no iterations
+                        in_stream = open(in_table.full_path, mode='rt', encoding='utf-8')
+                    self.send_json_data(in_stream, endpoint_path, request_parameters, log=not has_iterations,
+                                        iteration_parameters_values=iter_params)
 
-            if content_cfg.content_type in ['JSON', 'JSON_URL_ENCODED']:
-                if not in_stream:
-                    # if no iterations
-                    in_stream = open(in_table.full_path, mode='rt', encoding='utf-8')
-                self.send_json_data(in_stream, endpoint_path, request_parameters, log=not has_iterations,
-                                    iteration_parameters_values=iter_params)
+                elif content_cfg.content_type == 'EMPTY_REQUEST':
+                    # send empty request
+                    self.send_empty_request(method=request_cfg.method, endpoint_path=endpoint_path,
+                                            iteration_parameters_values=iter_params,
+                                            **request_parameters)
 
-            elif content_cfg.content_type == 'EMPTY_REQUEST':
-                # send empty request
-                self.send_empty_request(method=request_cfg.method, endpoint_path=endpoint_path,
-                                        iteration_parameters_values=iter_params,
-                                        **request_parameters)
-
-            elif content_cfg.content_type in ['BINARY', 'BINARY_GZ']:
-                if not in_stream:
-                    in_stream = open(in_table.full_path, mode='rb')
-                else:
-                    # in case of iteration mode
-                    in_stream = io.BytesIO(bytes(in_stream.getvalue(), 'utf-8'))
-                self.send_binary_data(endpoint_path, request_parameters, in_stream)
+                elif content_cfg.content_type in ['BINARY', 'BINARY_GZ']:
+                    if not in_stream:
+                        in_stream = open(in_table.full_path, mode='rb')
+                    else:
+                        # in case of iteration mode
+                        in_stream = io.BytesIO(bytes(in_stream.getvalue(), 'utf-8'))
+                    self.send_binary_data(endpoint_path, request_parameters, in_stream)
+            except TimeoutError:
+                logging.warning(f"The component execution exceeded the timeout of {self.FUNCTION_TIMEOUT}s")
 
         self._log_writer.close()
         self.write_manifest(self._log_writer.log_table)
@@ -276,6 +280,7 @@ class Component(ComponentBase):
             request_parameters[h["key"]] = val
         return request_parameters
 
+    @timeout(FUNCTION_TIMEOUT)
     def send_empty_request(self, method: str, endpoint_path: str, iteration_parameters_values: dict = None,
                            **request_parameters):
         """
@@ -300,6 +305,7 @@ class Component(ComponentBase):
             else:
                 raise ex
 
+    @timeout(FUNCTION_TIMEOUT)
     def send_json_data(self, in_stream, url, additional_request_params, log=True,
                        iteration_parameters_values: dict = None):
         # returns nested JSON schema for input.csv
