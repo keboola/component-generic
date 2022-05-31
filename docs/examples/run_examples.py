@@ -1,5 +1,7 @@
 import os
+import shutil
 import sys
+import tempfile
 from pathlib import Path
 from runpy import run_path
 from typing import List
@@ -47,16 +49,25 @@ component_script = Path(__file__).absolute().parent.parent.parent.joinpath('src/
 print("Running legacy configurations")
 os.environ['KBC_EXAMPLES_DIR'] = '/legacy_examples/'
 for dir_path in test_dirs_legacy:
-    print(f'\n\nRunning example {Path(dir_path).name}\n')
+    temp_dir = tempfile.mkdtemp()
+    test_name = Path(dir_path).name
+    testdir_path = os.path.join(temp_dir, test_name)
+    shutil.copytree(dir_path, testdir_path, dirs_exist_ok=True)
+
+    print(f'\n\nRunning example {test_name}\n')
     sys.path.append(Path(component_script).parent.as_posix())
 
-    run_component(component_script, dir_path)
+    run_component(component_script, testdir_path)
 
 print("\n\n\n\nRunning v2 configurations")
 os.environ['KBC_EXAMPLES_DIR'] = '/examples/'
 for dir_path in test_dirs:
-    print(f'\n\nRunning example {Path(dir_path).name}\n')
+    temp_dir = tempfile.mkdtemp()
+    test_name = Path(dir_path).name
+    testdir_path = os.path.join(temp_dir, test_name)
+    shutil.copytree(dir_path, testdir_path, dirs_exist_ok=True)
+    print(f'\n\nRunning example {test_name}\n')
     sys.path.append(Path(component_script).parent.as_posix())
-    run_component(component_script, dir_path)
+    run_component(component_script, testdir_path)
 
 print('All tests finished successfully!')

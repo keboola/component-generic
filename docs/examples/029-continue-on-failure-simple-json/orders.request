@@ -1,0 +1,3 @@
+POST /029-continue-on-failure-simple-json/orders
+
+{"id": 123, "name": "John Doe", "address_city": "London", "address_country": "UK", "address_street": "Whitehaven Mansions"}

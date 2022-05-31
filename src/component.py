@@ -4,6 +4,7 @@ Template Component main class.
 '''
 
 import csv
+import datetime
 import gzip
 import io
 import json
@@ -11,15 +12,18 @@ import logging
 import os
 import shutil
 import tempfile
+from pathlib import Path
+from typing import List, Union
 
 from keboola.component import UserException
 from keboola.component.base import ComponentBase
+from keboola.component.dao import TableDefinition
 from nested_lookup import nested_lookup
 
 # parameters variables
 from configuration import WriterConfiguration, build_configuration, ValidationError
 from http_generic.auth import AuthMethodBuilder, AuthBuilderError
-from http_generic.client import GenericHttpClient
+from http_generic.client import GenericHttpClient, ClientException
 from json_converter import JsonConverter
 from user_functions import UserFunctions
 
@@ -56,6 +60,31 @@ SUPPORTED_MODES = ['JSON', 'BINARY', 'BINARY-GZ']
 APP_VERSION = '0.0.1'
 
 
+class LogWriter:
+    def __init__(self, log_table: TableDefinition):
+        self.log_table = log_table
+        os.makedirs(Path(log_table.full_path).parent, exist_ok=True)
+        self._out_stream = open(log_table.full_path, 'w+')
+        self._writer = csv.DictWriter(self._out_stream, fieldnames=['row_id', 'status', 'detail', 'timestamp'])
+        self._writer.writeheader()
+
+    def _build_pk_hash(self, pkey: List) -> str:
+        pkey_str = [str(key) for key in pkey]
+        return '|'.join(pkey_str)
+
+    def write_record_single(self, data: dict, status: str, detail: str, primary_key_columns: List[str]):
+        pkey_cols = [data[pkey] for pkey in primary_key_columns]
+        row_id = self._build_pk_hash(pkey_cols)
+        row = {"row_id": row_id,
+               "status": status,
+               "detail": detail,
+               "timestamp": datetime.datetime.utcnow().isoformat()}
+        self._writer.writerow(row)
+
+    def close(self):
+        self._out_stream.close()
+
+
 class Component(ComponentBase):
 
     def __init__(self):
@@ -66,6 +95,7 @@ class Component(ComponentBase):
 
         self._configuration: WriterConfiguration = None
         self._client: GenericHttpClient = None
+        self._log_writer: LogWriter = None
 
     def init_component(self):
         try:
@@ -94,6 +124,10 @@ class Component(ComponentBase):
                                          status_forcelist=self._configuration.api.retry_config.codes,
                                          auth_method=auth_method
                                          )
+        # init log writer
+        log_out = self.create_out_table_definition('result_log.csv', incremental=True,
+                                                   primary_key=['row_id', 'status', 'timestamp'])
+        self._log_writer = LogWriter(log_out)
 
     def run(self):
         '''
@@ -173,11 +207,14 @@ class Component(ComponentBase):
                 if not in_stream:
                     # if no iterations
                     in_stream = open(in_table.full_path, mode='rt', encoding='utf-8')
-                self.send_json_data(in_stream, endpoint_path, request_parameters, log=not has_iterations)
+                self.send_json_data(in_stream, endpoint_path, request_parameters, log=not has_iterations,
+                                    iteration_parameters_values=iter_params)
 
             elif content_cfg.content_type == 'EMPTY_REQUEST':
                 # send empty request
-                self._client.send_request(method=request_cfg.method, endpoint_path=endpoint_path, **request_parameters)
+                self.send_empty_request(method=request_cfg.method, endpoint_path=endpoint_path,
+                                        iteration_parameters_values=iter_params,
+                                        **request_parameters)
 
             elif content_cfg.content_type in ['BINARY', 'BINARY_GZ']:
                 if not in_stream:
@@ -187,6 +224,8 @@ class Component(ComponentBase):
                     in_stream = io.BytesIO(bytes(in_stream.getvalue(), 'utf-8'))
                 self.send_binary_data(endpoint_path, request_parameters, in_stream)
 
+        self._log_writer.close()
+        self.write_manifest(self._log_writer.log_table)
         logging.info("Writer finished")
 
     def _get_iter_data(self, iteration_pars_path):
@@ -237,8 +276,35 @@ class Component(ComponentBase):
             request_parameters[h["key"]] = val
         return request_parameters
 
-    def send_json_data(self, in_stream, url, additional_request_params, log=True):
+    def send_empty_request(self, method: str, endpoint_path: str, iteration_parameters_values: dict = None,
+                           **request_parameters):
+        """
+        Sends empty request
+        Args:
+            method:
+            endpoint_path:
+            iteration_parameters_values: dict of request additional data if present. TO be used for logging
+            **request_parameters:
+
+        Returns:
+
+        """
+        if not iteration_parameters_values:
+            iteration_parameters_values = {}
+
+        try:
+            self._client.send_request(method=method, endpoint_path=endpoint_path, **request_parameters)
+        except ClientException as ex:
+            if self._configuration.request_parameters.continue_on_failure:
+                self._handle_continue_on_failure(iteration_parameters_values, iteration_parameters_values, str(ex))
+            else:
+                raise ex
+
+    def send_json_data(self, in_stream, url, additional_request_params, log=True,
+                       iteration_parameters_values: dict = None):
         # returns nested JSON schema for input.csv
+        if not iteration_parameters_values:
+            iteration_parameters_values = {}
         request_parameters = self._configuration.request_parameters
         request_content = self._configuration.request_content
         json_params = request_content.json_mapping
@@ -271,10 +337,30 @@ class Component(ComponentBase):
             else:
                 raise ValueError(f"Invalid JSON content type: {request_content.content_type}")
 
-            self._client.send_request(method=request_parameters.method, endpoint_path=url,
-                                      **additional_request_params)
+            try:
+                self._client.send_request(method=request_parameters.method, endpoint_path=url,
+                                          **additional_request_params)
+            except ClientException as ex:
+                if self._configuration.request_parameters.continue_on_failure:
+                    self._handle_continue_on_failure(json_payload, iteration_parameters_values, str(ex))
+                else:
+                    raise ex
+
             i += 1
         in_stream.close()
+
+    def _handle_continue_on_failure(self, json_payload: Union[dict, list], popped_params: dict, error_detail: str):
+        primary_key = self._configuration.request_parameters.continue_on_failure.primary_key
+
+        if isinstance(json_payload, dict):
+            full_data = {**json_payload, **popped_params}
+            self._log_writer.write_record_single(full_data, 'failed', error_detail, primary_key)
+        elif isinstance(json_payload, list):
+            for row in json_payload:
+                full_data = {**row, **popped_params}
+                self._log_writer.write_record_single(full_data, 'failed', error_detail, primary_key)
+        else:
+            raise Exception(f"Unexpected JSON data type. {type(json_payload)}")
 
     def send_binary_data(self, url, additional_request_params, in_stream):
         request_parameters = self._configuration.request_parameters
@@ -336,7 +422,7 @@ if __name__ == "__main__":
         comp = Component()
         # this triggers the run method by default and is controlled by the parameters.action paramter
         comp.execute_action()
-    except UserException as exc:
+    except (UserException, ClientException) as exc:
         logging.exception(exc)
         exit(1)
     except Exception as exc:

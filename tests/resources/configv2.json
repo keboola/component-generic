@@ -46,7 +46,11 @@
       "date": "[[date]]"
     },
     "endpoint_path": "users/[[id]]",
-    "continue_on_failure": false
+    "continue_on_failure": {
+      "primary_key": [
+        "id"
+      ]
+    }
   },
   "request_content": {
     "content_type": "JSON",

@@ -37,6 +37,11 @@ class Authentication(SubscriptableDataclass):
 
 
 @dataclass
+class ContinueOnFailure(SubscriptableDataclass):
+    primary_key: List[str] = field(default_factory=list)
+
+
+@dataclass
 class ApiConfig(SubscriptableDataclass):
     base_url: str
     default_query_parameters: dict = field(default_factory=dict)
@@ -52,7 +57,7 @@ class ApiRequest(SubscriptableDataclass):
     endpoint_path: str
     headers: dict = field(default_factory=dict)
     query_parameters: dict = field(default_factory=dict)
-    continue_on_failure: bool = False
+    continue_on_failure: ContinueOnFailure = None
 
 
 class DataType(Enum):
@@ -307,8 +312,12 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
 
     retry_config = build_dataclass_from_dict(RetryConfig, api_config_pars.get('retry_config', {}))
     api_config.retry_config = retry_config
+
     # Request options
     api_request = build_dataclass_from_dict(ApiRequest, request_parameters)
+    if request_parameters.get('continue_on_failure'):
+        api_request.continue_on_failure = build_dataclass_from_dict(ContinueOnFailure,
+                                                                    request_parameters['continue_on_failure'])
 
     json_mapping_pars = request_content.get('json_mapping')
     if json_mapping_pars:

@@ -1,13 +1,16 @@
 from typing import Tuple, Dict
 
 import requests
-from keboola.component import UserException
 from keboola.http_client import HttpClient
 from requests.adapters import HTTPAdapter
 from requests.exceptions import HTTPError
 from urllib3 import Retry
 
 from http_generic.auth import AuthMethodBase
+
+
+class ClientException(Exception):
+    pass
 
 
 class GenericHttpClient(HttpClient):
@@ -46,7 +49,9 @@ class GenericHttpClient(HttpClient):
             else:
                 message = f'Request "{method}: {endpoint_path}" failed with non-retryable error. ' \
                           f'Status Code: {e.response.status_code}. Response: {e.response.text}'
-            raise UserException(message) from e
+            raise ClientException(message) from e
+        except requests.exceptions.ConnectionError as e:
+            raise ClientException(f"Connection failed {e}") from e
 
     def build_url(self, base_url, endpoint_path):
         self.base_url = base_url
