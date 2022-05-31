@@ -299,9 +299,10 @@ class Component(ComponentBase):
 
         try:
             self._client.send_request(method=method, endpoint_path=endpoint_path, **request_parameters)
+            self._log_written_records(iteration_parameters_values, iteration_parameters_values, '', 'success')
         except ClientException as ex:
             if self._configuration.request_parameters.continue_on_failure:
-                self._handle_continue_on_failure(iteration_parameters_values, iteration_parameters_values, str(ex))
+                self._log_written_records(iteration_parameters_values, iteration_parameters_values, str(ex), 'failed')
             else:
                 raise ex
 
@@ -346,25 +347,30 @@ class Component(ComponentBase):
             try:
                 self._client.send_request(method=request_parameters.method, endpoint_path=url,
                                           **additional_request_params)
+                self._log_written_records(json_payload, iteration_parameters_values, '', 'success')
             except ClientException as ex:
                 if self._configuration.request_parameters.continue_on_failure:
-                    self._handle_continue_on_failure(json_payload, iteration_parameters_values, str(ex))
+                    self._log_written_records(json_payload, iteration_parameters_values, str(ex), 'failed')
                 else:
                     raise ex
 
             i += 1
         in_stream.close()
 
-    def _handle_continue_on_failure(self, json_payload: Union[dict, list], popped_params: dict, error_detail: str):
+    def _log_written_records(self, json_payload: Union[dict, list], popped_params: dict, detail_message: str,
+                             status: str):
+        if not self._configuration.request_parameters.continue_on_failure:
+            return
+
         primary_key = self._configuration.request_parameters.continue_on_failure.primary_key
 
         if isinstance(json_payload, dict):
             full_data = {**json_payload, **popped_params}
-            self._log_writer.write_record_single(full_data, 'failed', error_detail, primary_key)
+            self._log_writer.write_record_single(full_data, status, detail_message, primary_key)
         elif isinstance(json_payload, list):
             for row in json_payload:
                 full_data = {**row, **popped_params}
-                self._log_writer.write_record_single(full_data, 'failed', error_detail, primary_key)
+                self._log_writer.write_record_single(full_data, status, detail_message, primary_key)
         else:
             raise Exception(f"Unexpected JSON data type. {type(json_payload)}")
 
