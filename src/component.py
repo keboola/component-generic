@@ -87,7 +87,7 @@ class LogWriter:
 
 
 class Component(ComponentBase):
-    FUNCTION_TIMEOUT = 53900
+    FUNCTION_TIMEOUT = 52000
 
     def __init__(self):
         super().__init__()
