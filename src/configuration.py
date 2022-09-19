@@ -285,6 +285,12 @@ def _handle_kbc_error_converting_objects(configuration: WriterConfiguration):
     if configuration.request_parameters and isinstance(configuration.request_parameters.query_parameters, list):
         configuration.request_parameters.query_parameters = {}
 
+    if configuration.request_parameters and isinstance(configuration.request_parameters.headers, list):
+        configuration.request_parameters.headers = {}
+
+    if configuration.api and isinstance(configuration.api.default_headers, list):
+        configuration.api.default_headers = {}
+
     if configuration.request_content.json_mapping and isinstance(
             configuration.request_content.json_mapping.column_names_override, list):
         configuration.request_content.json_mapping.column_names_override = {}
