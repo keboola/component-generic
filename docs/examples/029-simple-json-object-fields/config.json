@@ -1,0 +1,37 @@
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80",
+      "default_headers": []
+    },
+    "debug": true,
+    "user_parameters": {},
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/029-simple-json-object-fields/orders",
+      "headers": [],
+      "query_parameters": {}
+    },
+    "request_content": {
+      "content_type": "JSON",
+      "json_mapping": {
+        "nesting_delimiter": "_",
+        "chunk_size": 1,
+        "column_data_types": {
+          "autodetect": true,
+          "datatype_override": [
+            {
+              "column": "json",
+              "type": "object"
+            }
+          ]
+        },
+        "request_data_wrapper": "",
+        "column_names_override": {}
+      },
+      "iterate_by_columns": [
+        "symbol"
+      ]
+    }
+  }
+}

@@ -2,5 +2,5 @@ keboola.component==1.3.4
 keboola.http_client
 keboola.utils
 requests
-https://bitbucket.org/kds_consulting_team/kds-team.processor-csv-to-json/get/0.5.4.zip#egg=csv2json
+https://bitbucket.org/kds_consulting_team/kds-team.processor-csv-to-json/get/0.5.5.zip#egg=csv2json
 nested-lookup

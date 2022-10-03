@@ -1,0 +1,3 @@
+POST /029-simple-json-object-fields/orders
+
+{"symbol": {"name": "Test"}, "compan": {"name": {"code": "TEST Inc."}}, "change": {"alert": 2.0}, "json": {"content": "Ttest push", "defaultTranslation": true, "langs": ["en"]}}
