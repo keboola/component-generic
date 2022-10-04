@@ -4,7 +4,7 @@ import requests
 from keboola.component import UserException
 from keboola.http_client import HttpClient
 from requests.adapters import HTTPAdapter
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, InvalidJSONError
 from urllib3 import Retry
 
 from http_generic.auth import AuthMethodBase
@@ -47,6 +47,11 @@ class GenericHttpClient(HttpClient):
                 message = f'Request "{method}: {endpoint_path}" failed with non-retryable error. ' \
                           f'Status Code: {e.response.status_code}. Response: {e.response.text}'
             raise UserException(message) from e
+        except InvalidJSONError as e:
+            message = f'Request "{method}: {endpoint_path}" failed. The JSON payload is invalid (more in detail). ' \
+                      f'Verify the datatype conversion.'
+            data = kwargs.get('data') or kwargs.get('json')
+            raise UserException(message, data)
 
     def build_url(self, base_url, endpoint_path):
         self.base_url = base_url
