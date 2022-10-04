@@ -1,2 +1,2 @@
 symbol,symbol_name,compan_name_code,change_alert,json
-TTT,Test,TEST Inc.,2.00,"{""content"":""Ttest push"",""defaultTranslation"":true,""langs"":[""en""]}"
+TTT,Test,TEST Inc.,NaN,"{""content"":""Ttest push"",""defaultTranslation"":true,""langs"":[""en""]}"
