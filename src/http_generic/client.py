@@ -47,7 +47,7 @@ class GenericHttpClient(HttpClient):
                 message = f'Request "{method}: {endpoint_path}" failed with non-retryable error. ' \
                           f'Status Code: {e.response.status_code}. Response: {e.response.text}'
             raise UserException(message) from e
-        except InvalidJSONError as e:
+        except InvalidJSONError:
             message = f'Request "{method}: {endpoint_path}" failed. The JSON payload is invalid (more in detail). ' \
                       f'Verify the datatype conversion.'
             data = kwargs.get('data') or kwargs.get('json')
