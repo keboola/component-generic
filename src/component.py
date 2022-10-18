@@ -279,17 +279,18 @@ class Component(ComponentBase):
     def send_binary_data(self, url, additional_request_params, in_stream):
         request_parameters = self._configuration.request_parameters
         request_content = self._configuration.request_content
+        file = tempfile.mktemp()
         if request_content.content_type == 'BINARY_GZ':
-            file = tempfile.mktemp()
             with gzip.open(file, 'wb') as f_out:
                 shutil.copyfileobj(in_stream, f_out)
 
             in_stream = open(file, mode='rb')
 
-            additional_request_params['data'] = in_stream
-            self._client.send_request(method=request_parameters.method, endpoint_path=url,
-                                      **additional_request_params)
-            in_stream.close()
+        additional_request_params['data'] = in_stream
+        self._client.send_request(method=request_parameters.method, endpoint_path=url,
+                                  **additional_request_params)
+        in_stream.close()
+        if os.path.exists(file):
             os.remove(file)
 
     def _fill_in_user_parameters(self, conf_objects, user_param):

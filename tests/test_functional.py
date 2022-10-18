@@ -2,6 +2,7 @@ import os
 import re
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 import responses
 from keboola.component import UserException
@@ -70,7 +71,15 @@ class TestComponent(unittest.TestCase):
                 params_matcher
             ]
         )
+
         comp.run()
+
+    @patch('http_generic.client.GenericHttpClient.send_request')
+    def test_binary_payload_full_request_sent(self, mock_post):
+        test_name = 'binary_simple'
+        comp = self._get_test_component(test_name)
+        comp.run()
+        mock_post.assert_called()
 
     @responses.activate
     def test_binary_payload_gz(self):
@@ -92,6 +101,13 @@ class TestComponent(unittest.TestCase):
             ]
         )
         comp.run()
+
+    @patch('http_generic.client.GenericHttpClient.send_request')
+    def test_binary_payload_gz_request_sent(self, mock_post):
+        test_name = 'binary_gz'
+        comp = self._get_test_component(test_name)
+        comp.run()
+        mock_post.assert_called()
 
     def test_invalid_config_ue(self):
         test_name = 'invalid_config'
