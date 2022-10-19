@@ -32,7 +32,7 @@ The data can be sent in two ways:
       default query parameters sent with each API call.
     - [**default_headers**](/extend/generic-writer/configuration/#default-headers) --- sets the default query headers
       sent with each API call.
-    - [**ssl_verify**](/extend/generic-writer/configuration/#ssl-verify) --- allows turning of the SSL certificate
+    - [**ssl_verification**](/extend/generic-writer/configuration/#ssl-verification) --- allows turning of the SSL certificate
       verification. Use with caution.
 - [**user_parameters**](/extend/generic-writer/configuration/#user-parameters) --- user parameters to be used in various
   contexts, e.g. passwords. Supports dynamic functions
@@ -84,7 +84,7 @@ navigate between them.
           429
         ]
       },
-      "ssl_verify": true
+      "ssl_verification": true
     },
     "user_parameters": {
       "#token": "Bearer 123456",
@@ -260,7 +260,7 @@ Basic HTTP authentication using username and password.
 
 See [example 024](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/024-simple-json-basic-http-auth)
 
-### SSL Verify
+### SSL Verification
 
 Allows turning of the SSL certificate verification. Use with caution. When set to false the certificate verification is
 turned off.
@@ -270,7 +270,7 @@ turned off.
 {
   "api": {
     "base_url": "http://localhost:8000",
-    "ssl_verify": false
+    "ssl_verification": false
   }
 }
 ```
