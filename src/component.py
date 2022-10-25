@@ -155,10 +155,12 @@ class Component(ComponentBase):
             query_parameters = {**api_cfg.default_query_parameters.copy(), **request_cfg.query_parameters.copy()}
             query_parameters = self._fill_in_user_parameters(query_parameters, user_params)
             ssl_verify = api_cfg.ssl_verification
+            timeout = api_cfg.timeout
             # additional_params = self._build_request_parameters(additional_params_cfg)
             request_parameters = {'params': query_parameters,
                                   'headers': new_headers,
-                                  'verify': ssl_verify}
+                                  'verify': ssl_verify,
+                                  'timeout': timeout}
 
             endpoint_path = request_cfg.endpoint_path
             endpoint_path = self._apply_iteration_params(endpoint_path, iter_params)
@@ -271,7 +273,7 @@ class Component(ComponentBase):
                 raise ValueError(f"Invalid JSON content type: {request_content.content_type}")
 
             self._client.send_request(method=request_parameters.method, endpoint_path=url,
-                                      timeout=request_parameters.timeout, **additional_request_params)
+                                      **additional_request_params)
             i += 1
         in_stream.close()
 

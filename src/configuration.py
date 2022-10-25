@@ -44,6 +44,7 @@ class ApiConfig(SubscriptableDataclass):
     authentication: Authentication = None
     retry_config: RetryConfig = field(default_factory=RetryConfig)
     ssl_verification: bool = True
+    timeout: float = None
 
 
 @dataclass
@@ -53,7 +54,6 @@ class ApiRequest(SubscriptableDataclass):
     headers: dict = field(default_factory=dict)
     query_parameters: dict = field(default_factory=dict)
     continue_on_failure: bool = False
-    timeout: float = None
 
 
 class DataType(Enum):
