@@ -34,8 +34,8 @@ The data can be sent in two ways:
       sent with each API call.
     - [**ssl_verification**](/extend/generic-writer/configuration/#ssl-verification) --- allows turning of the SSL certificate
       verification. Use with caution.
-    - [**timeout**](/extend/generic-writer/configuration/#timeout) --- maximum time in seconds for which the component 
-
+    - [**timeout**](/extend/generic-writer/configuration/#timeout) --- maximum time in seconds for which the component
+      waits after each request (defaults to None if not set)
 - [**user_parameters**](/extend/generic-writer/configuration/#user-parameters) --- user parameters to be used in various
   contexts, e.g. passwords. Supports dynamic functions
 - [**request_parameters**](/extend/generic-writer/configuration/#request-parameters) -- [REQUIRED] HTTP parameters of
@@ -46,7 +46,6 @@ The data can be sent in two ways:
     - [**query_parameters**](/extend/generic-writer/configuration/#query-parameters) --- query parameters sent with each
       request
     - [**headers**](/extend/generic-writer/configuration/#headers) --- headers sent with each request
-  waits after each request (defaults to None if not set)
 - [**request_content**](/extend/generic-writer/configuration/#request-content) --- [REQUIRED] defines how the data is
   sent
     - [**content_type**](/extend/generic-writer/configuration/#content-type) --- [REQUIRED] defines how the data is
