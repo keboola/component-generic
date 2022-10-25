@@ -394,6 +394,11 @@ Allows you to define default query parameters that are being sent with each requ
 
 See [example 009](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/009-simple-json-request-parameters/)
 
+### Timeout
+
+Optional parameter which allows you to define maximum timeout for each request. 
+For more information, refer to [requests docs](https://requests.readthedocs.io/en/stable/user/advanced/#timeouts).
+
 ## Request Content
 
 Defines how to process the input and how the sent content should look like.

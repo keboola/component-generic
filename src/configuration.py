@@ -328,5 +328,4 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     result_config = WriterConfiguration(api=api_config, request_parameters=api_request, request_content=content,
                                         user_parameters=user_parameters)
     _handle_kbc_error_converting_objects(result_config)
-
     return result_config
