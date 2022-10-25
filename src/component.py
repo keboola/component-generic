@@ -61,7 +61,7 @@ class Component(ComponentBase):
     def __init__(self):
         super().__init__()
 
-        # intialize instance parameteres
+        # initialize instance parameters
         self.user_functions = UserFunctions()
 
         self._configuration: WriterConfiguration = None
@@ -130,7 +130,7 @@ class Component(ComponentBase):
             iteration_data = self._get_iter_data(in_table.full_path)
             logging.warning('Iteration parameters mode found, running multiple iterations.')
         logging.info(f'Sending data in content type: {content_cfg.content_type}, using {request_cfg.method} method')
-        # runing iterations
+        # running iterations
         for index, iter_data_row in enumerate(iteration_data):
             iter_params = {}
             log_output = (index % 50) == 0
@@ -199,7 +199,6 @@ class Component(ComponentBase):
         '''
         Cuts out iteration columns from data row and returns current iteration parameters values
         :param iter_data_row:
-        :param iteration_mode:
         :return:
         '''
         params = {}
@@ -272,7 +271,7 @@ class Component(ComponentBase):
                 raise ValueError(f"Invalid JSON content type: {request_content.content_type}")
 
             self._client.send_request(method=request_parameters.method, endpoint_path=url,
-                                      **additional_request_params)
+                                      timeout=request_parameters.timeout, **additional_request_params)
             i += 1
         in_stream.close()
 

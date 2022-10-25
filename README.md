@@ -44,6 +44,8 @@ The data can be sent in two ways:
     - [**query_parameters**](/extend/generic-writer/configuration/#query-parameters) --- query parameters sent with each
       request
     - [**headers**](/extend/generic-writer/configuration/#headers) --- headers sent with each request
+    - [**timeout**](/extend/generic-writer/configuration/#timeout) --- maximum time in seconds for which the component 
+  waits after each request (defaults to None if not set)
 - [**request_content**](/extend/generic-writer/configuration/#request-content) --- [REQUIRED] defines how the data is
   sent
     - [**content_type**](/extend/generic-writer/configuration/#content-type) --- [REQUIRED] defines how the data is
@@ -112,7 +114,8 @@ navigate between them.
         "date": {
           "attr": "date"
         }
-      }
+      },
+      "timeout": 5
     },
     "request_content": {
       "content_type": "JSON",
@@ -377,7 +380,7 @@ Allows you to define default query parameters that are being sent with each requ
 **NOTE** That you can reference parameters defined in `user_parameters` using the `{"attr":"SOME_KEY"}` syntax.
 
 ```json
-            "request_parameters": {
+"request_parameters": {
 "method": "POST",
 "endpoint_path": "/customer/[[id]]",
 "query_parameters": {

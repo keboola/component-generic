@@ -53,6 +53,7 @@ class ApiRequest(SubscriptableDataclass):
     headers: dict = field(default_factory=dict)
     query_parameters: dict = field(default_factory=dict)
     continue_on_failure: bool = False
+    timeout: float = None
 
 
 class DataType(Enum):
@@ -327,4 +328,5 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     result_config = WriterConfiguration(api=api_config, request_parameters=api_request, request_content=content,
                                         user_parameters=user_parameters)
     _handle_kbc_error_converting_objects(result_config)
+
     return result_config
