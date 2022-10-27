@@ -4,7 +4,7 @@ import requests
 from keboola.component import UserException
 from keboola.http_client import HttpClient
 from requests.adapters import HTTPAdapter
-from requests.exceptions import HTTPError, InvalidJSONError
+from requests.exceptions import HTTPError, InvalidJSONError, ConnectionError
 from urllib3 import Retry
 
 from http_generic.auth import AuthMethodBase
@@ -52,6 +52,9 @@ class GenericHttpClient(HttpClient):
                       f'Verify the datatype conversion.'
             data = kwargs.get('data') or kwargs.get('json')
             raise UserException(message, data)
+        except ConnectionError as e:
+            message = f'Request "{method}: {endpoint_path}" failed with the following error: {e}'
+            raise UserException(message) from e
 
     def build_url(self, base_url, endpoint_path):
         self.base_url = base_url

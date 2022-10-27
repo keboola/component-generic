@@ -44,6 +44,7 @@ class ApiConfig(SubscriptableDataclass):
     authentication: Authentication = None
     retry_config: RetryConfig = field(default_factory=RetryConfig)
     ssl_verification: bool = True
+    timeout: float = None
 
 
 @dataclass

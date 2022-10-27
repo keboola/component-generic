@@ -34,6 +34,8 @@ The data can be sent in two ways:
       sent with each API call.
     - [**ssl_verification**](/extend/generic-writer/configuration/#ssl-verification) --- allows turning of the SSL certificate
       verification. Use with caution.
+    - [**timeout**](/extend/generic-writer/configuration/#timeout) --- maximum time in seconds for which the component
+      waits after each request (defaults to None if not set)
 - [**user_parameters**](/extend/generic-writer/configuration/#user-parameters) --- user parameters to be used in various
   contexts, e.g. passwords. Supports dynamic functions
 - [**request_parameters**](/extend/generic-writer/configuration/#request-parameters) -- [REQUIRED] HTTP parameters of
@@ -84,7 +86,8 @@ navigate between them.
           429
         ]
       },
-      "ssl_verification": true
+      "ssl_verification": true,
+      "timeout": 5
     },
     "user_parameters": {
       "#token": "Bearer 123456",
@@ -275,6 +278,14 @@ turned off.
 }
 ```
 
+### Timeout
+
+Optional parameter which allows you to define maximum timeout for each request. If not set, uses default requests value: None.
+
+Possible values: (int, float)
+For more information, refer to [requests docs](https://requests.readthedocs.io/en/stable/user/advanced/#timeouts).
+
+
 ## User Parameters
 
 In this section you can defined user parameters to be used in various contexts, e.g. passwords. This is also the place
@@ -377,7 +388,7 @@ Allows you to define default query parameters that are being sent with each requ
 **NOTE** That you can reference parameters defined in `user_parameters` using the `{"attr":"SOME_KEY"}` syntax.
 
 ```json
-            "request_parameters": {
+"request_parameters": {
 "method": "POST",
 "endpoint_path": "/customer/[[id]]",
 "query_parameters": {

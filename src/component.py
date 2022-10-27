@@ -61,7 +61,7 @@ class Component(ComponentBase):
     def __init__(self):
         super().__init__()
 
-        # intialize instance parameteres
+        # initialize instance parameters
         self.user_functions = UserFunctions()
 
         self._configuration: WriterConfiguration = None
@@ -130,7 +130,7 @@ class Component(ComponentBase):
             iteration_data = self._get_iter_data(in_table.full_path)
             logging.warning('Iteration parameters mode found, running multiple iterations.')
         logging.info(f'Sending data in content type: {content_cfg.content_type}, using {request_cfg.method} method')
-        # runing iterations
+        # running iterations
         for index, iter_data_row in enumerate(iteration_data):
             iter_params = {}
             log_output = (index % 50) == 0
@@ -155,10 +155,12 @@ class Component(ComponentBase):
             query_parameters = {**api_cfg.default_query_parameters.copy(), **request_cfg.query_parameters.copy()}
             query_parameters = self._fill_in_user_parameters(query_parameters, user_params)
             ssl_verify = api_cfg.ssl_verification
+            timeout = api_cfg.timeout
             # additional_params = self._build_request_parameters(additional_params_cfg)
             request_parameters = {'params': query_parameters,
                                   'headers': new_headers,
-                                  'verify': ssl_verify}
+                                  'verify': ssl_verify,
+                                  'timeout': timeout}
 
             endpoint_path = request_cfg.endpoint_path
             endpoint_path = self._apply_iteration_params(endpoint_path, iter_params)
@@ -199,7 +201,6 @@ class Component(ComponentBase):
         '''
         Cuts out iteration columns from data row and returns current iteration parameters values
         :param iter_data_row:
-        :param iteration_mode:
         :return:
         '''
         params = {}
