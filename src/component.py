@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import shutil
+import sys
 import tempfile
 
 from keboola.component import UserException
@@ -94,6 +95,9 @@ class Component(ComponentBase):
                                          status_forcelist=self._configuration.api.retry_config.codes,
                                          auth_method=auth_method
                                          )
+        # to prevent field larger than field limit (131072) Errors
+        # https://stackoverflow.com/questions/15063936/csv-error-field-larger-than-field-limit-131072
+        csv.field_size_limit(sys.maxsize)
 
     def run(self):
         '''
