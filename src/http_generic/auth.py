@@ -1,8 +1,8 @@
 import inspect
 from abc import ABC, abstractmethod
-from typing import Callable, Union, Dict
 
 from requests.auth import AuthBase, HTTPBasicAuth
+from typing import Callable, Union, Dict
 
 
 class AuthBuilderError(Exception):
@@ -93,3 +93,24 @@ class BasicHttp(AuthMethodBase):
             self.username == getattr(other, 'username', None),
             self.password == getattr(other, 'password', None)
         ])
+
+
+class BearerToken(AuthMethodBase, AuthBase):
+
+    def __init__(self, __token):
+        self.token = __token
+
+    def login(self) -> Union[AuthBase, Callable]:
+        return self
+
+    def __eq__(self, other):
+        return all([
+            self.token == getattr(other, 'token', None)
+        ])
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __call__(self, r):
+        r.headers['authorization'] = f"Bearer {self.token}"
+        return r
