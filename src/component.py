@@ -242,7 +242,6 @@ class Component(ComponentBase):
 
                 message = record.message if hasattr(record, 'message') else record.msg
 
-                # Remove the "CSVLOG:" prefix
                 message = message.replace("CSV LOG - ", "").strip()
 
                 log_entry = [

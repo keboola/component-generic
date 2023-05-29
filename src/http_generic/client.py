@@ -38,6 +38,8 @@ class GenericHttpClient(HttpClient):
 
     def send_request(self, method, endpoint_path, **kwargs):
         try:
+            logging.debug(f"CSV LOG - Request method: {method}")
+            logging.debug(f"CSV LOG - Endpoint path: {endpoint_path}")
             logging.debug(f"CSV LOG - Request headers: {kwargs.get('headers')}")
             logging.debug(f"CSV LOG - Request body: {kwargs.get('data') if kwargs.get('data') else kwargs.get('json')}")
 
