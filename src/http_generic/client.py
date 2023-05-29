@@ -1,5 +1,6 @@
 from typing import Tuple, Dict
 
+import logging
 import requests
 from keboola.component import UserException
 from keboola.http_client import HttpClient
@@ -37,8 +38,15 @@ class GenericHttpClient(HttpClient):
 
     def send_request(self, method, endpoint_path, **kwargs):
         try:
+            logging.debug(f"Request headers: {kwargs.get('headers')}")
+            # Body is already handled by requests debug
+            # logging.debug(f"Request body: {kwargs.get('data') if kwargs.get('data') else kwargs.get('json')}")
+
             resp = self._request_raw(method=method, endpoint_path=endpoint_path, is_absolute_path=False, **kwargs)
             resp.raise_for_status()
+
+            logging.debug(f"Response body received: {resp.text}")
+
         except HTTPError as e:
             if e.response.status_code in self.status_forcelist:
                 message = f'Request "{method}: {endpoint_path}" failed, too many retries. ' \
