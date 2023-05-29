@@ -49,6 +49,7 @@ KEY_ITERATION_MODE = 'iteration_mode'
 KEY_ITERATION_PAR_COLUMNS = 'iteration_par_columns'
 # #### Keep for debug
 KEY_DEBUG = 'debug'
+KEY_LOG_TO_FILE = 'log_to_file'
 
 MANDATORY_PARS = [KEY_PATH]
 MANDATORY_IMAGE_PARS = []
@@ -107,9 +108,7 @@ class Component(ComponentBase):
         csv.field_size_limit(sys.maxsize)
 
         # Enable debug mode
-        if self.configuration.parameters.get("debug", False):
-            logging.info("Debug mode enabled.")
-            self.set_csv_logger()
+        self._set_debug_mode()
 
     def run(self):
         '''
@@ -210,6 +209,12 @@ class Component(ComponentBase):
             logging.info(f"Debug log saved into {self.log_table.name}")
 
         logging.info("Writer finished")
+
+    def _set_debug_mode(self):
+        if self.configuration.parameters.get("debug", False):
+            logging.info("Debug mode enabled.")
+            if self.configuration.parameters.get("log_to_file", False):
+                self.set_csv_logger()
 
     def set_csv_logger(self, log_level: int = logging.DEBUG):
         self.log_table = self.create_out_table_definition("output_log.csv", columns=["utc_ts", "entry"],
