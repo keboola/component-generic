@@ -61,7 +61,7 @@ APP_VERSION = '0.1.1'
 
 class DebugFilter(logging.Filter):
     def filter(self, record):
-        return record.levelno == logging.DEBUG
+        return record.levelno == logging.DEBUG and record.getMessage().startswith("CSV LOG -")
 
 
 class Component(ComponentBase):
@@ -240,16 +240,15 @@ class Component(ComponentBase):
                 # Convert the timestamp to UTC
                 timestamp_utc = datetime.utcfromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S.%f')
 
-                try:
-                    log_entry = [
-                        timestamp_utc,
-                        record.message
-                    ]
-                except AttributeError:
-                    log_entry = [
-                        timestamp_utc,
-                        record.msg
-                    ]
+                message = record.message if hasattr(record, 'message') else record.msg
+
+                # Remove the "CSVLOG:" prefix
+                message = message.replace("CSV LOG - ", "").strip()
+
+                log_entry = [
+                    timestamp_utc,
+                    message,
+                ]
 
                 log_entry_csv = ','.join(
                     [f'"{value}"' for value in log_entry]
