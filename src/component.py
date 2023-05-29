@@ -12,6 +12,7 @@ import os
 import shutil
 import sys
 import tempfile
+from datetime import datetime
 
 from keboola.component import UserException
 from keboola.component.base import ComponentBase
@@ -54,7 +55,12 @@ MANDATORY_IMAGE_PARS = []
 
 SUPPORTED_MODES = ['JSON', 'BINARY', 'BINARY-GZ']
 
-APP_VERSION = '0.0.1'
+APP_VERSION = '0.1.1'
+
+
+class DebugFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelno == logging.DEBUG
 
 
 class Component(ComponentBase):
@@ -63,6 +69,7 @@ class Component(ComponentBase):
         super().__init__()
 
         # initialize instance parameters
+        self.log_table = None
         self.user_functions = UserFunctions()
 
         self._configuration: WriterConfiguration = None
@@ -98,6 +105,11 @@ class Component(ComponentBase):
         # to prevent field larger than field limit (131072) Errors
         # https://stackoverflow.com/questions/15063936/csv-error-field-larger-than-field-limit-131072
         csv.field_size_limit(sys.maxsize)
+
+        # Enable debug mode
+        if self.configuration.parameters.get("debug", False):
+            logging.info("Debug mode enabled.")
+            self.set_csv_logger()
 
     def run(self):
         '''
@@ -193,7 +205,47 @@ class Component(ComponentBase):
                     in_stream = io.BytesIO(bytes(in_stream.getvalue(), 'utf-8'))
                 self.send_binary_data(endpoint_path, request_parameters, in_stream)
 
+        if self.log_table:
+            self.write_manifest(self.log_table)
+            logging.info(f"Debug log saved into {self.log_table.name}")
+
         logging.info("Writer finished")
+
+    def set_csv_logger(self, log_level: int = logging.DEBUG):
+        self.log_table = self.create_out_table_definition("output_log.csv", columns=["utc_ts", "entry"],
+                                                          incremental=True)
+        log_handler = logging.FileHandler(self.log_table.full_path, mode='w', encoding='utf-8')
+        log_formatter = self.csv_formatter()
+        log_handler.setFormatter(log_formatter)
+        log_handler.setLevel(log_level)
+
+        # Add the DebugFilter to the log handler
+        debug_filter = DebugFilter()
+        log_handler.addFilter(debug_filter)
+
+        logger = logging.getLogger()
+        logger.addHandler(log_handler)
+
+    def csv_formatter(self):
+        class CSVFormatter(logging.Formatter):
+            def __init__(self):
+                super().__init__()
+
+            def format(self, record):
+                # Convert the timestamp to UTC
+                timestamp_utc = datetime.utcfromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S.%f')
+
+                log_entry = [
+                    timestamp_utc,
+                    record.message,
+                ]
+
+                log_entry_csv = ','.join(
+                    [f'"{value}"' for value in log_entry]
+                )
+                return log_entry_csv
+
+        return CSVFormatter()
 
     def _get_iter_data(self, iteration_pars_path):
         with open(iteration_pars_path, mode='rt', encoding='utf-8') as in_file:
