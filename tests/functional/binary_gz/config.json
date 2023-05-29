@@ -24,7 +24,7 @@
       "delimiter": "__",
       "infer_types_for_unknown": true
     },
-    "debug": false
+    "debug": true
   },
   "image_parameters": {}
 }
