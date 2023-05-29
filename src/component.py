@@ -242,7 +242,7 @@ class Component(ComponentBase):
 
                 log_entry = [
                     timestamp_utc,
-                    record.message,
+                    record.message or None,
                 ]
 
                 log_entry_csv = ','.join(
