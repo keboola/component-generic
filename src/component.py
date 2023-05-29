@@ -240,10 +240,16 @@ class Component(ComponentBase):
                 # Convert the timestamp to UTC
                 timestamp_utc = datetime.utcfromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S.%f')
 
-                log_entry = [
-                    timestamp_utc,
-                    record.message or None,
-                ]
+                try:
+                    log_entry = [
+                        timestamp_utc,
+                        record.message
+                    ]
+                except AttributeError:
+                    log_entry = [
+                        timestamp_utc,
+                        record.msg
+                    ]
 
                 log_entry_csv = ','.join(
                     [f'"{value}"' for value in log_entry]
