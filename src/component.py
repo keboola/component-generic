@@ -12,7 +12,6 @@ import os
 import shutil
 import sys
 import tempfile
-from datetime import datetime
 
 from keboola.component import UserException
 from keboola.component.base import ComponentBase
