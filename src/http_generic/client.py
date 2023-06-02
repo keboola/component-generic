@@ -1,5 +1,8 @@
 from typing import Tuple, Dict
 
+import csv
+import os
+from datetime import datetime
 import logging
 import requests
 from keboola.component import UserException
@@ -19,13 +22,21 @@ class GenericHttpClient(HttpClient):
                  auth_method: AuthMethodBase = None,
                  max_retries: int = 10,
                  backoff_factor: float = 0.3,
-                 status_forcelist: Tuple[int, ...] = (500, 502, 504)
+                 status_forcelist: Tuple[int, ...] = (500, 502, 504),
+                 log_file_path: str = None,
+                 debug: bool = False
                  ):
         super().__init__(base_url=base_url, max_retries=max_retries, backoff_factor=backoff_factor,
                          status_forcelist=status_forcelist,
                          default_http_header=default_http_header, default_params=default_params)
 
         self._auth_method = auth_method
+
+        self._log_file_path = log_file_path
+        if self._log_file_path:
+            self.to_csv = True
+
+        self._debug = debug
 
     def login(self):
         """
@@ -38,15 +49,16 @@ class GenericHttpClient(HttpClient):
 
     def send_request(self, method, endpoint_path, **kwargs):
         try:
-            logging.debug(f"CSV LOG - Request method: {method}")
-            logging.debug(f"CSV LOG - Endpoint path: {endpoint_path}")
-            logging.debug(f"CSV LOG - Request headers: {kwargs.get('headers')}")
-            logging.debug(f"CSV LOG - Request body: {kwargs.get('data') if kwargs.get('data') else kwargs.get('json')}")
+            self.log(f"Request method: {method}")
+            self.log(f"Endpoint path: {endpoint_path}")
+            self.log(f"Request headers: {kwargs.get('headers')}", to_debug=True)
+
+            self.log(f"Request body: {kwargs.get('data') if kwargs.get('data') else kwargs.get('json')}")
 
             resp = self._request_raw(method=method, endpoint_path=endpoint_path, is_absolute_path=False, **kwargs)
             resp.raise_for_status()
 
-            logging.debug(f"CSV LOG - Response body received: {resp.text}")
+            self.log(f"CSV LOG - Response body received: {resp.text}", to_debug=True)
 
         except HTTPError as e:
             if e.response.status_code in self.status_forcelist:
@@ -85,3 +97,27 @@ class GenericHttpClient(HttpClient):
         session.mount('http://', adapter)
         session.mount('https://', adapter)
         return session
+
+    def log(self, msg: str, to_debug: bool = False):
+        if to_debug:
+            logging.debug(msg)
+
+        if self.to_csv:
+            _msg = {
+                "utc_ts":  str(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")),
+                "entry": str(msg)
+
+            }
+            self.save_dict_to_csv(_msg)
+
+    def save_dict_to_csv(self, data_dict):
+        file_exists = os.path.exists(self._log_file_path)
+
+        fieldnames = list(data_dict.keys())
+        with open(self._log_file_path, 'a', newline='') as csv_file:
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+            if not file_exists:
+                writer.writeheader()
+
+            writer.writerow(data_dict)

@@ -59,18 +59,15 @@ SUPPORTED_MODES = ['JSON', 'BINARY', 'BINARY-GZ']
 APP_VERSION = '0.1.1'
 
 
-class DebugFilter(logging.Filter):
-    def filter(self, record):
-        return record.levelno == logging.DEBUG and record.getMessage().startswith("CSV LOG -")
-
-
 class Component(ComponentBase):
 
     def __init__(self):
         super().__init__()
 
         # initialize instance parameters
+        self.log_to_file = False
         self.log_table = None
+        self.debug_mode = False
         self.user_functions = UserFunctions()
 
         self._configuration: WriterConfiguration = None
@@ -96,19 +93,20 @@ class Component(ComponentBase):
         except AuthBuilderError as e:
             raise UserException(e) from e
 
+        self._set_log_and_debug()
+
         # init client
         self._client = GenericHttpClient(base_url=self._configuration.api.base_url,
                                          max_retries=self._configuration.api.retry_config.max_retries,
                                          backoff_factor=self._configuration.api.retry_config.backoff_factor,
                                          status_forcelist=self._configuration.api.retry_config.codes,
-                                         auth_method=auth_method
+                                         auth_method=auth_method,
+                                         log_file_path=self.log_table.full_path,
+                                         debug=self.debug_mode
                                          )
         # to prevent field larger than field limit (131072) Errors
         # https://stackoverflow.com/questions/15063936/csv-error-field-larger-than-field-limit-131072
         csv.field_size_limit(sys.maxsize)
-
-        # Enable debug mode
-        self._set_debug_mode()
 
     def run(self):
         '''
@@ -210,51 +208,14 @@ class Component(ComponentBase):
 
         logging.info("Writer finished")
 
-    def _set_debug_mode(self):
-        if self.configuration.parameters.get("debug", False):
-            logging.info("Debug mode enabled.")
-            if self.configuration.parameters.get("log_to_file", False):
-                self.set_csv_logger()
+    def _set_log_and_debug(self):
+        if self.configuration.parameters.get(KEY_LOG_TO_FILE, False):
+            self.log_table = self.create_out_table_definition("output_log.csv", columns=["utc_ts", "entry"],
+                                                              incremental=True)
+            self.log_to_file = True
 
-    def set_csv_logger(self, log_level: int = logging.DEBUG):
-        self.log_table = self.create_out_table_definition("output_log.csv", columns=["utc_ts", "entry"],
-                                                          incremental=True)
-        log_handler = logging.FileHandler(self.log_table.full_path, mode='w', encoding='utf-8')
-        log_formatter = self.csv_formatter()
-        log_handler.setFormatter(log_formatter)
-        log_handler.setLevel(log_level)
-
-        # Add the DebugFilter to the log handler
-        debug_filter = DebugFilter()
-        log_handler.addFilter(debug_filter)
-
-        logger = logging.getLogger()
-        logger.addHandler(log_handler)
-
-    def csv_formatter(self):
-        class CSVFormatter(logging.Formatter):
-            def __init__(self):
-                super().__init__()
-
-            def format(self, record):
-                # Convert the timestamp to UTC
-                timestamp_utc = datetime.utcfromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S.%f')
-
-                message = record.message if hasattr(record, 'message') else record.msg
-
-                message = message.replace("CSV LOG - ", "").strip()
-
-                log_entry = [
-                    timestamp_utc,
-                    message,
-                ]
-
-                log_entry_csv = ','.join(
-                    [f'"{value}"' for value in log_entry]
-                )
-                return log_entry_csv
-
-        return CSVFormatter()
+        if self.configuration.parameters.get(KEY_DEBUG):
+            self.debug_mode = True
 
     def _get_iter_data(self, iteration_pars_path):
         with open(iteration_pars_path, mode='rt', encoding='utf-8') as in_file:
