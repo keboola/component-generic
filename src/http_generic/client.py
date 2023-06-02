@@ -35,6 +35,8 @@ class GenericHttpClient(HttpClient):
         self._log_file_path = log_file_path
         if self._log_file_path:
             self.to_csv = True
+        else:
+            self.to_csv = False
 
         self._debug = debug
 
