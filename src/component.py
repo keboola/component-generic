@@ -201,7 +201,7 @@ class Component(ComponentBase):
                     in_stream = io.BytesIO(bytes(in_stream.getvalue(), 'utf-8'))
                 self.send_binary_data(endpoint_path, request_parameters, in_stream)
 
-        if self.log_table:
+        if self.log_table_path:
             self.write_manifest(self.log_table)
             logging.info(f"Debug log saved into {self.log_table.name}")
 
@@ -209,10 +209,10 @@ class Component(ComponentBase):
 
     def _set_log_and_debug(self):
         if self.configuration.parameters.get(KEY_LOG_TO_FILE, False):
-            log_table = self.create_out_table_definition("output_log.csv", columns=["utc_ts", "entry"],
-                                                         incremental=True)
+            self.log_table = self.create_out_table_definition("output_log.csv", columns=["utc_ts", "entry"],
+                                                              incremental=True)
             self.log_to_file = True
-            self.log_table_path = log_table.full_path
+            self.log_table_path = self.log_table.full_path
 
         if self.configuration.parameters.get(KEY_DEBUG):
             self.debug_mode = True
