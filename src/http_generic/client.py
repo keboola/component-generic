@@ -1,8 +1,9 @@
 from typing import Tuple, Dict
 
 import csv
-import os
 from datetime import datetime
+import re
+import os
 import logging
 import requests
 from keboola.component import UserException
@@ -53,14 +54,18 @@ class GenericHttpClient(HttpClient):
         try:
             self.log(f"Request method: {method}")
             self.log(f"Endpoint path: {endpoint_path}")
-            self.log(f"Request headers: {kwargs.get('headers')}", to_debug=True)
+
+            headers = kwargs.get('headers')
+            self.mask_headers(headers) if headers else None
+
+            self.log(f"Request headers: {headers}", to_debug=self._debug)
 
             self.log(f"Request body: {kwargs.get('data') if kwargs.get('data') else kwargs.get('json')}")
 
             resp = self._request_raw(method=method, endpoint_path=endpoint_path, is_absolute_path=False, **kwargs)
             resp.raise_for_status()
 
-            self.log(f"CSV LOG - Response body received: {resp.text}", to_debug=True)
+            self.log(f"CSV LOG - Response body received: {resp.text}", to_debug=self._debug)
 
         except HTTPError as e:
             if e.response.status_code in self.status_forcelist:
@@ -123,3 +128,20 @@ class GenericHttpClient(HttpClient):
                 writer.writeheader()
 
             writer.writerow(data_dict)
+
+    def mask_headers(self, headers):
+        patterns = [
+            r"Bearer\s+\w+",  # Bearer Tokens
+            r"password\s*=\s*\w+",  # Passwords
+            r"api_key\s*=\s*\w+",  # API Keys
+            r"access_token\s*=\s*\w+",  # Access Tokens
+            r"client_secret\s*=\s*\w+",  # Client Secrets
+            r"authorization_code\s*=\s*\w+",  # Authorization Codes
+            r"refresh_token\s*=\s*\w+",  # Refresh Tokens
+            r"oauth_secret\s*=\s*\w+"  # OAuth Secrets
+        ]
+
+        for pattern in patterns:
+            headers = re.sub(pattern, '****', headers)
+
+        return headers
