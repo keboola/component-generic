@@ -65,7 +65,7 @@ class Component(ComponentBase):
 
         # initialize instance parameters
         self.log_to_file = False
-        self.log_table = None
+        self.log_table_path = None
         self.debug_mode = False
         self.user_functions = UserFunctions()
 
@@ -100,7 +100,7 @@ class Component(ComponentBase):
                                          backoff_factor=self._configuration.api.retry_config.backoff_factor,
                                          status_forcelist=self._configuration.api.retry_config.codes,
                                          auth_method=auth_method,
-                                         log_file_path=self.log_table.full_path,
+                                         log_file_path=self.log_table_path,
                                          debug=self.debug_mode
                                          )
         # to prevent field larger than field limit (131072) Errors
@@ -209,9 +209,10 @@ class Component(ComponentBase):
 
     def _set_log_and_debug(self):
         if self.configuration.parameters.get(KEY_LOG_TO_FILE, False):
-            self.log_table = self.create_out_table_definition("output_log.csv", columns=["utc_ts", "entry"],
-                                                              incremental=True)
+            log_table = self.create_out_table_definition("output_log.csv", columns=["utc_ts", "entry"],
+                                                         incremental=True)
             self.log_to_file = True
+            self.log_table_path = log_table.full_path
 
         if self.configuration.parameters.get(KEY_DEBUG):
             self.debug_mode = True
