@@ -3,7 +3,6 @@ from typing import Tuple, Dict
 import csv
 from datetime import datetime
 import re
-import os
 import logging
 import requests
 from keboola.component import UserException
