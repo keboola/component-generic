@@ -115,7 +115,17 @@ class GenericHttpClient(HttpClient):
 
     def log_headers(self, kwargs) -> None:
         headers = kwargs.get('headers')
-        headers_str = str(headers) if headers else None
+        headers_str = None
+
+        if headers:
+            if isinstance(headers, bytes):
+                try:
+                    headers_str = headers.decode('utf-8')
+                except UnicodeDecodeError:
+                    headers_str = "<binary data>"
+            else:
+                headers_str = str(headers)
+
         self.mask_headers(headers_str) if headers_str else None
         self.log(f"Request headers: {headers_str}", to_debug=self._debug)
 
@@ -125,9 +135,10 @@ class GenericHttpClient(HttpClient):
 
         if request_data:
             if isinstance(request_data, bytes):
-                request_body = request_data.decode('utf-8')
-            elif hasattr(request_data, 'read'):
-                request_body = request_data.read().decode('utf-8')
+                try:
+                    request_body = request_data.decode('utf-8')
+                except UnicodeDecodeError:
+                    request_body = "<binary data>"
             else:
                 request_body = str(request_data)
 
