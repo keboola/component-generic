@@ -131,7 +131,7 @@ class GenericHttpClient(HttpClient):
 
     def log_body(self, kwargs) -> None:
         request_data = kwargs.get('data') or kwargs.get('json')
-        request_body = None
+        request_body = ""
 
         if request_data:
             if isinstance(request_data, bytes):
