@@ -118,14 +118,9 @@ class GenericHttpClient(HttpClient):
             self.save_dict_to_csv(_msg)
 
     def save_dict_to_csv(self, data_dict):
-        file_exists = os.path.exists(self._log_file_path)
-
         fieldnames = list(data_dict.keys())
         with open(self._log_file_path, 'a', newline='') as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-
-            if not file_exists:
-                writer.writeheader()
 
             writer.writerow(data_dict)
 
