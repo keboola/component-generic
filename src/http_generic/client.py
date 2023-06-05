@@ -56,16 +56,16 @@ class GenericHttpClient(HttpClient):
             self.log(f"Endpoint path: {endpoint_path}")
 
             headers = kwargs.get('headers')
-            self.mask_headers(headers) if headers else None
-
-            self.log(f"Request headers: {headers}", to_debug=self._debug)
+            headers_str = str(headers) if headers else None
+            self.mask_headers(headers_str) if headers_str else None
+            self.log(f"Request headers: {headers_str}", to_debug=self._debug)
 
             self.log(f"Request body: {kwargs.get('data') if kwargs.get('data') else kwargs.get('json')}")
 
             resp = self._request_raw(method=method, endpoint_path=endpoint_path, is_absolute_path=False, **kwargs)
             resp.raise_for_status()
 
-            self.log(f"CSV LOG - Response body received: {resp.text}", to_debug=self._debug)
+            self.log(f"Response body received: {resp.text}", to_debug=self._debug)
 
         except HTTPError as e:
             if e.response.status_code in self.status_forcelist:
@@ -129,7 +129,8 @@ class GenericHttpClient(HttpClient):
 
             writer.writerow(data_dict)
 
-    def mask_headers(self, headers):
+    @staticmethod
+    def mask_headers(headers: str):
         patterns = [
             r"Bearer\s+\w+",  # Bearer Tokens
             r"password\s*=\s*\w+",  # Passwords
