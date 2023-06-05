@@ -54,12 +54,9 @@ class GenericHttpClient(HttpClient):
             self.log(f"Request method: {method}")
             self.log(f"Endpoint path: {endpoint_path}")
 
-            headers = kwargs.get('headers')
-            headers_str = str(headers) if headers else None
-            self.mask_headers(headers_str) if headers_str else None
-            self.log(f"Request headers: {headers_str}", to_debug=self._debug)
+            self.log_headers(kwargs)
 
-            self.log(f"Request body: {kwargs.get('data') if kwargs.get('data') else kwargs.get('json')}")
+            self.log_body(kwargs)
 
             resp = self._request_raw(method=method, endpoint_path=endpoint_path, is_absolute_path=False, **kwargs)
             resp.raise_for_status()
@@ -115,6 +112,26 @@ class GenericHttpClient(HttpClient):
 
             }
             self.save_dict_to_csv(_msg)
+
+    def log_headers(self, kwargs) -> None:
+        headers = kwargs.get('headers')
+        headers_str = str(headers) if headers else None
+        self.mask_headers(headers_str) if headers_str else None
+        self.log(f"Request headers: {headers_str}", to_debug=self._debug)
+
+    def log_body(self, kwargs) -> None:
+        request_data = kwargs.get('data') or kwargs.get('json')
+        request_body = None
+
+        if request_data:
+            if isinstance(request_data, bytes):
+                request_body = request_data.decode('utf-8')
+            elif hasattr(request_data, 'read'):
+                request_body = request_data.read().decode('utf-8')
+            else:
+                request_body = str(request_data)
+
+        self.log(f"Request body: {request_body}")
 
     def save_dict_to_csv(self, data_dict):
         fieldnames = list(data_dict.keys())
