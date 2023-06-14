@@ -25,6 +25,6 @@ class TestConfiguration(unittest.TestCase):
 
     def test_valid_method_params_pass(self):
         params = {'username': "usr", '#password': 'test'}
-        expected = BasicHttp(username='usr', _BasicHttp__password='test')
+        expected = BasicHttp(None, username='usr', _BasicHttp__password='test')
         auth_method = AuthMethodBuilder.build('BasicHttp', **params)
         self.assertEqual(expected, auth_method)

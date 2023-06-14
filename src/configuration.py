@@ -37,11 +37,18 @@ class Authentication(SubscriptableDataclass):
 
 
 @dataclass
+class Signature(SubscriptableDataclass):
+    type: str
+    parameters: dict = field(default_factory=dict)
+
+
+@dataclass
 class ApiConfig(SubscriptableDataclass):
     base_url: str
     default_query_parameters: dict = field(default_factory=dict)
     default_headers: dict = field(default_factory=dict)
     authentication: Authentication = None
+    request_signature: Signature = None
     retry_config: RetryConfig = field(default_factory=RetryConfig)
     ssl_verification: bool = True
     timeout: float = None
@@ -311,6 +318,9 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     api_config: ApiConfig = build_dataclass_from_dict(ApiConfig, api_config_pars)
     if api_config_pars.get('authentication'):
         api_config.authentication = build_dataclass_from_dict(Authentication, api_config_pars['authentication'])
+
+    if api_config_pars.get('request_signature'):
+        api_config.request_signature = build_dataclass_from_dict(Signature, api_config_pars['request_signature'])
 
     retry_config = build_dataclass_from_dict(RetryConfig, api_config_pars.get('retry_config', {}))
     api_config.retry_config = retry_config

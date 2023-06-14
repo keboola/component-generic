@@ -18,9 +18,10 @@ from keboola.component.base import ComponentBase
 from nested_lookup import nested_lookup
 
 # parameters variables
-from configuration import WriterConfiguration, build_configuration, ValidationError
+from configuration import WriterConfiguration, build_configuration, ValidationError, Authentication
 from http_generic.auth import AuthMethodBuilder, AuthBuilderError
 from http_generic.client import GenericHttpClient
+from http_generic.signature import SignMethodBuilder, SignatureBuilderError
 from json_converter import JsonConverter
 from user_functions import UserFunctions
 
@@ -75,17 +76,35 @@ class Component(ComponentBase):
             raise UserException(e) from e
 
         # build authentication method
-        auth_method = None
+        sign_method = None
         authentication = self._configuration.api.authentication
+        signature = self._configuration.api.request_signature
+        sign_method = None
+        auth_method = None
+
+        # evaluate user_params inside the user params itself
+        user_params = self._configuration.user_parameters
+        user_params = self._fill_in_user_parameters(user_params, user_params)
+
         try:
-            if authentication:
+            if signature:
+                # signature requires authentication
+                if not authentication:
+                    authentication = Authentication('NoAuthentication', {})
                 # evaluate user_params inside the user params itself
                 user_params = self._configuration.user_parameters
                 user_params = self._fill_in_user_parameters(user_params, user_params)
                 # apply user parameters
+                sign_method_params = self._fill_in_user_parameters(signature.parameters, user_params)
+                sign_method = SignMethodBuilder.build(signature.type, **sign_method_params)
+
+            if authentication:
+                # apply user parameters
                 auth_method_params = self._fill_in_user_parameters(authentication.parameters, user_params)
-                auth_method = AuthMethodBuilder.build(authentication.type, **auth_method_params)
+                auth_method = AuthMethodBuilder.build(authentication.type, sign_method, **auth_method_params)
         except AuthBuilderError as e:
+            raise UserException(e) from e
+        except SignatureBuilderError as e:
             raise UserException(e) from e
 
         # init client

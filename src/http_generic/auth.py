@@ -1,19 +1,24 @@
 import inspect
 from abc import ABC, abstractmethod
+from typing import Callable, Union, Dict
 
 from requests.auth import AuthBase, HTTPBasicAuth
-from typing import Callable, Union, Dict
+
+from http_generic.signature import SignatureBase, NoSignature
 
 
 class AuthBuilderError(Exception):
     pass
 
 
-class AuthMethodBase(ABC):
+class AuthMethodBase(ABC, AuthBase):
     """
     Base class to implement the authentication method. To mark secret constructor parameters prefix them with __
     e.g. __init__(self, username, __password)
     """
+
+    def __init__(self, signature_function: SignatureBase):
+        self.signature_function = signature_function
 
     @abstractmethod
     def login(self):
@@ -23,29 +28,49 @@ class AuthMethodBase(ABC):
         """
         pass
 
+    def sign_request(self, r):
+        """
+        Sign request using a defined signature method
+
+        """
+        return self.signature_function.sign(r)
+
+    def authorize_request(self, r):
+        return r
+
+    def __call__(self, r):
+        r = self.authorize_request(r)
+        r = self.sign_request(r)
+        return r
+
 
 class AuthMethodBuilder:
 
     @classmethod
-    def build(cls, method_name: str, **parameters):
+    def build(cls, method_name: str, signature_function: SignatureBase = None, **parameters) -> AuthMethodBase:
         """
 
         Args:
+            signature_function: Request signature function to use as part of authentication
             method_name:
             **parameters: dictionary of named parameters. Note that parameters prefixed # will be converted to __
 
         Returns:
 
         """
+        if not signature_function:
+            signature_function = NoSignature()
+
         supported_actions = cls.get_methods()
 
         if method_name not in list(supported_actions.keys()):
             raise AuthBuilderError(f'{method_name} is not supported auth method, '
                                    f'supported values are: [{list(supported_actions.keys())}]')
         parameters = cls._convert_secret_parameters(supported_actions[method_name], **parameters)
-        cls._validate_method_arguments(supported_actions[method_name], **parameters)
+        cls._validate_method_arguments(supported_actions[method_name], signature_function=signature_function,
+                                       **parameters)
 
-        return supported_actions[method_name](**parameters)
+        return supported_actions[method_name](signature_function=signature_function, **parameters)
 
     @staticmethod
     def _validate_method_arguments(method: object, **args):
@@ -78,15 +103,30 @@ class AuthMethodBuilder:
 
 
 # ########### SUPPORTED AUTHENTICATION METHODS
+class NoAuthentication(AuthMethodBase):
+
+    def __init__(self, signature_function):
+        super(NoAuthentication, self).__init__(signature_function)
+
+    def login(self) -> Union[AuthBase, Callable]:
+        return self
+
+    def authorize_request(self, r):
+        return r
+
 
 class BasicHttp(AuthMethodBase):
 
-    def __init__(self, username, __password):
+    def __init__(self, signature_function, username, __password):
+        super(BasicHttp, self).__init__(signature_function)
         self.username = username
         self.password = __password
 
     def login(self) -> Union[AuthBase, Callable]:
-        return HTTPBasicAuth(username=self.username, password=self.password)
+        return self
+
+    def authorize_request(self, r):
+        return HTTPBasicAuth(username=self.username, password=self.password)(r)
 
     def __eq__(self, other):
         return all([
@@ -95,13 +135,18 @@ class BasicHttp(AuthMethodBase):
         ])
 
 
-class BearerToken(AuthMethodBase, AuthBase):
+class BearerToken(AuthMethodBase):
 
-    def __init__(self, __token):
+    def __init__(self, signature_function, __token):
+        super(BearerToken, self).__init__(signature_function)
         self.token = __token
 
     def login(self) -> Union[AuthBase, Callable]:
         return self
+
+    def authorize_request(self, r):
+        r.headers['authorization'] = f"Bearer {self.token}"
+        return r
 
     def __eq__(self, other):
         return all([
@@ -110,7 +155,3 @@ class BearerToken(AuthMethodBase, AuthBase):
 
     def __ne__(self, other):
         return not self == other
-
-    def __call__(self, r):
-        r.headers['authorization'] = f"Bearer {self.token}"
-        return r
