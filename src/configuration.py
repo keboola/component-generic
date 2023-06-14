@@ -37,8 +37,10 @@ class Authentication(SubscriptableDataclass):
 
 
 @dataclass
-class ContinueOnFailure(SubscriptableDataclass):
+class RequestLogging(SubscriptableDataclass):
     primary_key: List[str] = field(default_factory=list)
+    log_success: bool = False
+    log_entire_payload: bool = True
 
 
 @dataclass
@@ -57,7 +59,8 @@ class ApiRequest(SubscriptableDataclass):
     endpoint_path: str
     headers: dict = field(default_factory=dict)
     query_parameters: dict = field(default_factory=dict)
-    continue_on_failure: ContinueOnFailure = None
+    continue_on_failure: bool = False
+    request_logging: RequestLogging = None
 
 
 class DataType(Enum):
@@ -315,9 +318,9 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
 
     # Request options
     api_request = build_dataclass_from_dict(ApiRequest, request_parameters)
-    if request_parameters.get('continue_on_failure'):
-        api_request.continue_on_failure = build_dataclass_from_dict(ContinueOnFailure,
-                                                                    request_parameters['continue_on_failure'])
+    if request_parameters.get('request_logging'):
+        api_request.request_logging = build_dataclass_from_dict(RequestLogging,
+                                                                    request_parameters['request_logging'])
 
     json_mapping_pars = request_content.get('json_mapping')
     if json_mapping_pars:

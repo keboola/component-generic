@@ -357,12 +357,27 @@ class Component(ComponentBase):
             i += 1
         in_stream.close()
 
+    def _send_and_log_request(self, method: str, endpoint_path: str, payload: Union[dict, list],
+                              popped_parameters: dict, **kwargs):
+        logging_setup = self._configuration.request_parameters.request_logging
+        try:
+            self._client.send_request(method=method, endpoint_path=endpoint_path,
+                                      **kwargs)
+            if logging_setup and logging_setup.log_success:
+                self._log_written_records(payload, popped_parameters, '', 'success')
+        except ClientException as ex:
+            self._log_written_records(payload, popped_parameters, str(ex), 'failed')
+            if not self._configuration.request_parameters.continue_on_failure:
+                raise ex
+
     def _log_written_records(self, json_payload: Union[dict, list], popped_params: dict, detail_message: str,
                              status: str):
-        if not self._configuration.request_parameters.continue_on_failure:
+        logging_setup = self._configuration.request_parameters.request_logging
+
+        if not logging_setup:
             return
 
-        primary_key = self._configuration.request_parameters.continue_on_failure.primary_key
+        primary_key = logging_setup.primary_key
 
         if isinstance(json_payload, dict):
             full_data = {**json_payload, **popped_params}
