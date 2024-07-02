@@ -37,11 +37,20 @@ class JsonConverter:
             json_string = '[' if self.chunk_size > 1 else ''
             while continue_it:
                 i += 1
+
+                # for infinity values, we need to replace them with a special string
+                row = [f'__{item}__' if self._is_infinity(item) else item for item in row]
+
                 result = converter.convert_row(row=row,
                                                coltypes=self.column_data_types,
                                                delimit=self.nesting_delimiter,
                                                colname_override=self.column_name_override,
                                                infer_undefined=self.infer_data_types)
+
+                # and for infinity values replace back
+                for key, value in result[0].items():
+                    if self._is_infinity(value, True):
+                        result[0][key] = value.replace('__', '')
 
                 json_string += json.dumps(result[0])
                 row = next(reader, None)
@@ -56,6 +65,17 @@ class JsonConverter:
             data = json.loads(json_string)
             data = self._wrap_json_payload(data)
             yield data
+
+    @staticmethod
+    def _is_infinity(value, reverse=False):
+        i_keys = ['infinity', '-infinity', 'inf', '-inf']
+        l_value = str(value).lower()
+        for key in i_keys:
+            if reverse:
+                key = f'__{key}__'
+            if l_value == key:
+                return True
+        return False
 
     def _wrap_json_payload(self, data: dict):
         if not self.data_wrapper:
