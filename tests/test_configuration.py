@@ -52,7 +52,7 @@ class TestConfiguration(unittest.TestCase):
                                  query_parameters={
                                      "date": "[[date]]"
                                  },
-                                 continue_on_failure=configuration.ContinueOnFailure(['id']))
+                                 continue_on_failure=True)
         content = RequestContent(content_type="JSON",
                                  iterate_by_columns=["id", "date"],
                                  json_mapping=JsonMapping(chunk_size=1,
