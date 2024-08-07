@@ -319,8 +319,7 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     # Request options
     api_request = build_dataclass_from_dict(ApiRequest, request_parameters)
     if request_parameters.get('request_logging'):
-        api_request.request_logging = build_dataclass_from_dict(RequestLogging,
-                                                                    request_parameters['request_logging'])
+        api_request.request_logging = build_dataclass_from_dict(RequestLogging, request_parameters['request_logging'])
 
     json_mapping_pars = request_content.get('json_mapping')
     if json_mapping_pars:
