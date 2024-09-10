@@ -1,0 +1,3 @@
+accept: */*
+x-login: JohnDoe
+x-password: TopSecret

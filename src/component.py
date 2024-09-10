@@ -24,6 +24,7 @@ from http_generic.client import GenericHttpClient
 from json_converter import JsonConverter
 from user_functions import UserFunctions
 
+
 KEY_USER_PARS = 'user_parameters'
 
 KEY_PATH = 'path'
@@ -84,6 +85,10 @@ class Component(ComponentBase):
                 user_params = self._fill_in_user_parameters(user_params, user_params)
                 # apply user parameters
                 auth_method_params = self._fill_in_user_parameters(authentication.parameters, user_params)
+
+                if authentication.type == 'Login':
+                    auth_method_params = AuthMethodBuilder.convert_login(self._configuration)
+
                 auth_method = AuthMethodBuilder.build(authentication.type, **auth_method_params)
         except AuthBuilderError as e:
             raise UserException(e) from e

@@ -3,16 +3,18 @@
     "api": {
       "base_url": "http://mock-server:80",
       "authentication": {
-        "type": "BearerToken",
+        "type": "ApiKey",
         "parameters": {
-          "#token": "XXXX"
+          "#token": "XXXX",
+          "key": "token",
+          "position": "query"
         }
       }
     },
     "user_parameters": {},
     "request_parameters": {
       "method": "POST",
-      "endpoint_path": "/031-auth-token-header/orders",
+      "endpoint_path": "/032-auth-token-query/orders",
       "headers": {
         "Content-Type": "application/json",
         "token": "12345"

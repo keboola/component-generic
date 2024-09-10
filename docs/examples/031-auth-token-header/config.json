@@ -3,9 +3,11 @@
     "api": {
       "base_url": "http://mock-server:80",
       "authentication": {
-        "type": "BearerToken",
+        "type": "ApiKey",
         "parameters": {
-          "#token": "XXXX"
+          "#token": "XXXX",
+          "key": "token",
+          "position": "headers"
         }
       }
     },
