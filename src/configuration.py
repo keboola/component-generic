@@ -10,6 +10,7 @@ import time
 from nested_lookup import nested_lookup
 from user_functions import UserFunctions
 
+
 @dataclass
 class SubscriptableDataclass:
     """
@@ -21,6 +22,7 @@ class SubscriptableDataclass:
 
     def __setitem__(self, key, value):
         return setattr(self, key, value)
+
 
 # CONFIGURATION OBJECT
 class ContentType(str, Enum):

@@ -59,11 +59,7 @@ class AuthMethodBuilder:
     @staticmethod
     def _validate_method_arguments(method_obj: object, **args):
         class_prefix = f"_{method_obj.__name__}__"
-        arguments_full = [p for p in inspect.signature(method_obj.__init__).parameters if p != 'self']
-
-        arguments_to_remove = ['method', 'login_query_parameters', 'login_query_body', 'login_content_type', 'login_headers', 'api_request_headers', 'api_request_query_parameters']
-
-        arguments = [l for l in arguments_full if l not in arguments_to_remove]
+        arguments = [p for p in inspect.signature(method_obj.__init__).parameters if p != 'self']
 
         missing_arguments = []
         for p in arguments:
@@ -173,6 +169,7 @@ class BearerToken(AuthMethodBase, AuthBase):
         r.headers['authorization'] = f"Bearer {self.token}"
         return r
 
+
 class ApiKey(AuthMethodBase, AuthBase):
     def get_secrets(self) -> list[str]:
         return [self.token]
@@ -202,6 +199,7 @@ class ApiKey(AuthMethodBase, AuthBase):
         else:
             raise AuthBuilderError(f"Unsupported position {self.position} for API Key auth method")
         return r
+
 
 class Login(AuthMethodBase, AuthBase):
 
@@ -309,6 +307,7 @@ class Login(AuthMethodBase, AuthBase):
         r.headers.update(self.api_request_headers)
         return r
 
+
 def build_user_parameters(configuration: dict) -> dict:
     """
     Build user parameters from configuration
@@ -325,6 +324,7 @@ def build_user_parameters(configuration: dict) -> dict:
         if key not in config_excluded_keys:
             user_parameters[key] = value
     return user_parameters
+
 
 def build_request_content(method: Literal['GET', 'POST', 'FORM'], params: dict) -> RequestContent:
     match method:
