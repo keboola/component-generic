@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 from requests.auth import AuthBase, HTTPBasicAuth
 from typing import Callable, Union, Dict
+from urllib.parse import urlencode
 
 
 class AuthBuilderError(Exception):
@@ -113,4 +114,34 @@ class BearerToken(AuthMethodBase, AuthBase):
 
     def __call__(self, r):
         r.headers['authorization'] = f"Bearer {self.token}"
+        return r
+
+class ApiKey(AuthMethodBase, AuthBase):
+    def get_secrets(self) -> list[str]:
+        return [self.token]
+
+    def __init__(self, key: str, __token: str, position: str):
+        self.token = __token
+        self.key = key
+        self.position = position
+
+    def login(self) -> Union[AuthBase, Callable]:
+        return self
+
+    def __eq__(self, other):
+        return all([
+            self.token == getattr(other, 'token', None)
+        ])
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __call__(self, r):
+        if self.position == 'headers':
+            r.headers[self.key] = f"{self.token}"
+
+        elif self.position == 'query':
+            r.url = f"{r.url}?{urlencode({self.key: self.token})}"
+        else:
+            raise AuthBuilderError(f"Unsupported position {self.position} for API Key auth method")
         return r
