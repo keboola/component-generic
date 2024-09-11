@@ -117,7 +117,7 @@ class AuthMethodBuilder:
         login_query_parameters: dict = login_request_content.query_parameters
         login_headers: dict = login_request_eval.get('headers', {})
         api_request_headers: dict = api_request_eval.get('headers', {})
-        api_request_query_parameters: dict = api_request_eval
+        api_request_query_parameters: dict = api_request_eval.get('query_parameters', {})
 
         parameters = {'login_endpoint': login_url,
                       'method': result_method,
