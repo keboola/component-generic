@@ -14,7 +14,7 @@
     "user_parameters": {},
     "request_parameters": {
       "method": "POST",
-      "endpoint_path": "/032-auth-token-query/orders",
+      "endpoint_path": "/031-auth-token-query/orders",
       "headers": {
         "Content-Type": "application/json",
         "token": "12345"
