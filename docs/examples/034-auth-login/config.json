@@ -10,7 +10,7 @@
             "method": "GET",
             "headers": {
               "X-Login": "JohnDoe",
-              "X-Password": "TopSecret"
+              "X-Password": {"attr":"#__password"}
           }
         },
         "apiRequest": {
@@ -23,7 +23,9 @@
         }
       }
     },
-    "user_parameters": {},
+    "user_parameters": {
+      "#__password": "TopSecret"
+    },
     "request_parameters": {
       "method": "POST",
       "endpoint_path": "/034-auth-login/orders",
