@@ -1,4 +1,0 @@
-accept: */*
-content-type: application/json
-content-length: 248
-x-apitoken: a1b2c3d435f6

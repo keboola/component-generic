@@ -6,7 +6,7 @@
         "type": "Login",
         "parameters": {
           "loginRequest": {
-            "endpoint": "/035-auth-login-query/login",
+            "endpoint": "/034-auth-login/login",
             "method": "GET",
             "headers": {
               "X-Login": "JohnDoe",
@@ -14,8 +14,8 @@
           }
         },
         "apiRequest": {
-          "query": {
-            "token": {
+          "headers": {
+            "X-ApiToken": {
               "response": "authorization.token"
             }
           }
@@ -26,7 +26,7 @@
     "user_parameters": {},
     "request_parameters": {
       "method": "POST",
-      "endpoint_path": "/035-auth-login-query/orders",
+      "endpoint_path": "/034-auth-login/orders",
       "headers": {
         "Content-Type": "application/json"
       },
