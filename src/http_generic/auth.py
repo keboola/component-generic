@@ -3,13 +3,13 @@ from abc import ABC, abstractmethod
 
 from requests.auth import AuthBase, HTTPBasicAuth
 from typing import Callable, Union, Dict, Literal
-from urllib.parse import urlencode, urljoin
+from urllib.parse import urlencode
 import requests
 import json
 from placeholders_utils import get_data_from_path
 import re
 
-from configuration import ContentType, ConfigHelpers, RequestContent
+from configuration import ContentType, ConfigHelpers, RequestContent, AuthMethodConverter, WriterConfiguration
 
 
 class AuthBuilderError(Exception):
@@ -34,11 +34,11 @@ class AuthMethodBase(ABC):
 class AuthMethodBuilder:
 
     @classmethod
-    def build(cls, method_name: str, **parameters):
+    def build(cls, config: WriterConfiguration, **parameters):
         """
 
         Args:
-            method_name:
+            config:
             **parameters: dictionary of named parameters. Note that parameters prefixed # will be converted to __
 
         Returns:
@@ -46,15 +46,20 @@ class AuthMethodBuilder:
         """
         supported_actions = cls.get_methods()
 
-        if method_name not in list(supported_actions.keys()):
-            raise AuthBuilderError(f'{method_name} is not supported auth method, '
+        auth_type = config.api.authentication.type
+
+        if auth_type not in list(supported_actions.keys()):
+            raise AuthBuilderError(f'{config} is not supported auth method, '
                                    f'supported values are: [{list(supported_actions.keys())}]')
 
-        parameters = cls._convert_secret_parameters(supported_actions[method_name], **parameters)
+        if auth_type == 'Login':
+            parameters = AuthMethodConverter.convert_login(config)
 
-        cls._validate_method_arguments(supported_actions[method_name], **parameters)
+        parameters = cls._convert_secret_parameters(supported_actions[auth_type], **parameters)
 
-        return supported_actions[method_name](**parameters)
+        cls._validate_method_arguments(supported_actions[auth_type], **parameters)
+
+        return supported_actions[auth_type](**parameters)
 
     @staticmethod
     def _validate_method_arguments(method_obj: object, **args):
@@ -85,50 +90,6 @@ class AuthMethodBuilder:
     @classmethod
     def get_supported_methods(cls):
         return list(cls.get_methods().keys())
-
-    @classmethod
-    def convert_login(cls, config_parameters) -> dict:
-        method_mapping = {'GET': 'GET', 'POST': 'POST', 'FORM': 'POST'}
-        helpers = ConfigHelpers()
-        login_request: dict = config_parameters.api.authentication.parameters.get("loginRequest", {})
-        api_request: dict = config_parameters.api.authentication.parameters.get("apiRequest", {})
-        # evaluate functions and user parameters
-        user_parameters = build_user_parameters(config_parameters)
-        user_parameters = helpers.fill_in_user_parameters(user_parameters, user_parameters)
-        login_request_eval = helpers.fill_in_user_parameters(login_request, user_parameters)
-        # the function evaluation is left for the Auth method because of the response placeholder
-        api_request_eval = helpers.fill_in_user_parameters(api_request, user_parameters, False)
-
-        if not login_request:
-            raise ValueError('loginRequest configuration not found in the Login Authentication configuration')
-
-        login_endpoint: str = login_request_eval.get('endpoint')
-        login_url = urljoin(config_parameters.api.base_url, login_endpoint)
-
-        method = login_request_eval.get('method', 'GET')
-
-        login_request_content: RequestContent = build_request_content(method, login_request_eval.get('params', {}))
-
-        try:
-            result_method: str = method_mapping[login_request_eval.get('method', 'GET').upper()]
-        except KeyError:
-            raise ValueError(f'Unsupported method: {login_request_eval.get("method")}')
-
-        login_query_parameters: dict = login_request_content.query_parameters
-        login_headers: dict = login_request_eval.get('headers', {})
-        api_request_headers: dict = api_request_eval.get('headers', {})
-        api_request_query_parameters: dict = api_request_eval.get('query', {})
-
-        parameters = {'login_endpoint': login_url,
-                      'method': result_method,
-                      'login_query_parameters': login_query_parameters,
-                      'login_headers': login_headers,
-                      'login_query_body': login_request_content.body,
-                      'login_content_type': login_request_content.content_type.value,
-                      'api_request_headers': api_request_headers,
-                      'api_request_query_parameters': api_request_query_parameters}
-
-        return parameters
 
 
 # ########### SUPPORTED AUTHENTICATION METHODS
@@ -306,36 +267,3 @@ class Login(AuthMethodBase, AuthBase):
             r.url = f"{r.url}?{urlencode(self.api_request_query_parameters)}"
         r.headers.update(self.api_request_headers)
         return r
-
-
-def build_user_parameters(configuration: dict) -> dict:
-    """
-    Build user parameters from configuration
-    Args:
-        configuration: Configuration in v2 format
-
-    Returns: User parameters
-
-    """
-    config_excluded_keys = ['__AUTH_METHOD', '__NAME', '#__BEARER_TOKEN', 'jobs', 'outputBucket', 'incrementalOutput',
-                            'http', 'debug', 'mappings', ' #username', '#password', 'userData']
-    user_parameters = {}
-    for key, value in configuration.user_parameters.items():
-        if key not in config_excluded_keys:
-            user_parameters[key] = value
-    return user_parameters
-
-
-def build_request_content(method: Literal['GET', 'POST', 'FORM'], params: dict) -> RequestContent:
-    match method:
-        case 'GET':
-            request_content = RequestContent(ContentType.none, query_parameters=params)
-        case 'POST':
-            request_content = RequestContent(ContentType.json,
-                                             body=params)
-        case 'FORM':
-            request_content = RequestContent(ContentType.form,
-                                             body=params)
-        case _:
-            raise ValueError(f'Unsupported method: {method}')
-    return request_content

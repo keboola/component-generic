@@ -18,7 +18,7 @@ from keboola.component.base import ComponentBase
 from nested_lookup import nested_lookup
 
 # parameters variables
-from configuration import WriterConfiguration, build_configuration, ValidationError
+from configuration import WriterConfiguration, build_configuration, ValidationError, AuthMethodConverter
 from http_generic.auth import AuthMethodBuilder, AuthBuilderError
 from http_generic.client import GenericHttpClient
 from json_converter import JsonConverter
@@ -85,11 +85,7 @@ class Component(ComponentBase):
                 user_params = self._fill_in_user_parameters(user_params, user_params)
                 # apply user parameters
                 auth_method_params = self._fill_in_user_parameters(authentication.parameters, user_params)
-
-                if authentication.type == 'Login':
-                    auth_method_params = AuthMethodBuilder.convert_login(self._configuration)
-
-                auth_method = AuthMethodBuilder.build(authentication.type, **auth_method_params)
+                auth_method = AuthMethodBuilder.build(self._configuration, **auth_method_params)
         except AuthBuilderError as e:
             raise UserException(e) from e
 
