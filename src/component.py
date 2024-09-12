@@ -18,7 +18,7 @@ from keboola.component.base import ComponentBase
 from nested_lookup import nested_lookup
 
 # parameters variables
-from configuration import WriterConfiguration, build_configuration, ValidationError
+from configuration import WriterConfiguration, build_configuration, ValidationError, ConfigHelpers
 from http_generic.auth import AuthMethodBuilder, AuthBuilderError
 from http_generic.client import GenericHttpClient
 from json_converter import JsonConverter
@@ -82,9 +82,9 @@ class Component(ComponentBase):
             if authentication:
                 # evaluate user_params inside the user params itself
                 user_params = self._configuration.user_parameters
-                user_params = self._fill_in_user_parameters(user_params, user_params)
+                user_params = ConfigHelpers().fill_in_user_parameters(user_params, user_params)
                 # apply user parameters
-                auth_method_params = self._fill_in_user_parameters(authentication.parameters, user_params)
+                auth_method_params = ConfigHelpers().fill_in_user_parameters(authentication.parameters, user_params)
                 auth_method = AuthMethodBuilder.build(self._configuration, **auth_method_params)
         except AuthBuilderError as e:
             raise UserException(e) from e
@@ -150,15 +150,15 @@ class Component(ComponentBase):
             user_params = self._configuration.user_parameters
             user_params = {**user_params.copy(), **iter_params}
             # evaluate user_params inside the user params itself
-            user_params = self._fill_in_user_parameters(user_params, user_params)
+            user_params = ConfigHelpers().fill_in_user_parameters(user_params, user_params)
 
             # build headers
             headers = {**api_cfg.default_headers.copy(), **request_cfg.headers.copy()}
-            new_headers = self._fill_in_user_parameters(headers, user_params)
+            new_headers = ConfigHelpers().fill_in_user_parameters(headers, user_params)
 
             # build additional parameters
             query_parameters = {**api_cfg.default_query_parameters.copy(), **request_cfg.query_parameters.copy()}
-            query_parameters = self._fill_in_user_parameters(query_parameters, user_params)
+            query_parameters = ConfigHelpers().fill_in_user_parameters(query_parameters, user_params)
             ssl_verify = api_cfg.ssl_verification
             timeout = api_cfg.timeout
             # additional_params = self._build_request_parameters(additional_params_cfg)
@@ -299,25 +299,6 @@ class Component(ComponentBase):
         if os.path.exists(file):
             os.remove(file)
 
-    def _fill_in_user_parameters(self, conf_objects, user_param):
-        # convert to string minified
-        steps_string = json.dumps(conf_objects, separators=(',', ':'))
-        # dirty and ugly replace
-        for key in user_param:
-            if isinstance(user_param[key], dict):
-                # in case the parameter is function, validate, execute and replace value with result
-                user_param[key] = self._perform_custom_function(key, user_param[key], user_param)
-
-            lookup_str = '{"attr":"' + key + '"}'
-            steps_string = steps_string.replace(lookup_str, '"' + str(user_param[key]) + '"')
-        new_steps = json.loads(steps_string)
-        non_matched = nested_lookup('attr', new_steps)
-
-        if non_matched:
-            raise ValueError(
-                'Some user attributes [{}] specified in parameters '
-                'are not present in "user_parameters" field.'.format(non_matched))
-        return new_steps
 
     def _perform_custom_function(self, key, function_cfg, user_params):
         if function_cfg.get('attr'):
