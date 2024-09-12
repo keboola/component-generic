@@ -6,7 +6,6 @@ Template Component main class.
 import csv
 import gzip
 import io
-import json
 import logging
 import os
 import shutil
@@ -15,7 +14,6 @@ import tempfile
 
 from keboola.component import UserException
 from keboola.component.base import ComponentBase
-from nested_lookup import nested_lookup
 
 # parameters variables
 from configuration import WriterConfiguration, build_configuration, ValidationError, ConfigHelpers
@@ -298,7 +296,6 @@ class Component(ComponentBase):
         in_stream.close()
         if os.path.exists(file):
             os.remove(file)
-
 
     def _perform_custom_function(self, key, function_cfg, user_params):
         if function_cfg.get('attr'):
