@@ -18,7 +18,7 @@ from keboola.component.base import ComponentBase
 from nested_lookup import nested_lookup
 
 # parameters variables
-from configuration import WriterConfiguration, build_configuration, ValidationError, AuthMethodConverter
+from configuration import WriterConfiguration, build_configuration, ValidationError
 from http_generic.auth import AuthMethodBuilder, AuthBuilderError
 from http_generic.client import GenericHttpClient
 from json_converter import JsonConverter

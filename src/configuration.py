@@ -448,6 +448,7 @@ class ConfigHelpers:
             return function_cfg
         return self.user_functions.execute_function(function_cfg['function'], *function_cfg.get('args', []))
 
+
 class AuthMethodConverter:
     @classmethod
     def convert_login(cls, config_parameters) -> dict:
@@ -492,6 +493,7 @@ class AuthMethodConverter:
                       'api_request_query_parameters': api_request_query_parameters}
 
         return parameters
+
 
 def build_user_parameters(configuration: dict) -> dict:
     """

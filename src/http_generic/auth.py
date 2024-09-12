@@ -2,14 +2,14 @@ import inspect
 from abc import ABC, abstractmethod
 
 from requests.auth import AuthBase, HTTPBasicAuth
-from typing import Callable, Union, Dict, Literal
+from typing import Callable, Union, Dict
 from urllib.parse import urlencode
 import requests
 import json
 from placeholders_utils import get_data_from_path
 import re
 
-from configuration import ContentType, ConfigHelpers, RequestContent, AuthMethodConverter, WriterConfiguration
+from configuration import ContentType, ConfigHelpers, AuthMethodConverter, WriterConfiguration
 
 
 class AuthBuilderError(Exception):
