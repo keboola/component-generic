@@ -340,6 +340,7 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     result_config = WriterConfiguration(api=api_config, request_parameters=api_request, request_content=content,
                                         user_parameters=user_parameters)
     _handle_kbc_error_converting_objects(result_config)
+
     return result_config
 
 
@@ -471,6 +472,8 @@ class AuthMethodConverter:
 
         method = login_request_eval.get('method', 'GET')
 
+        auth_type = login_request_eval.get('type')
+
         login_request_content: RequestContent = build_request_content(method, login_request_eval.get('params', {}))
 
         try:
@@ -492,8 +495,10 @@ class AuthMethodConverter:
                       'api_request_headers': api_request_headers,
                       'api_request_query_parameters': api_request_query_parameters}
 
-        return parameters
+        if auth_type:
+            parameters['auth_type'] = auth_type
 
+        return parameters
 
 def build_user_parameters(configuration: dict) -> dict:
     """

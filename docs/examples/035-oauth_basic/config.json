@@ -1,0 +1,57 @@
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80",
+      "authentication": {
+        "type": "OAuth20ClientCredentials",
+        "format": "json",
+        "parameters": {
+          "loginRequest": {
+            "endpoint": "/035-oauth_basic/login",
+            "method": "GET",
+            "type": "client_secret_basic",
+            "headers": {}
+        },
+        "apiRequest": {
+          "headers": {
+                        "X-ApiToken": {"response": "access_token" }
+          }
+        }
+        }
+      }
+    },
+    "user_parameters": {
+      "#__password": "TopSecret"
+    },
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/035-oauth_basic/orders",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "query_parameters": {}
+    },
+    "request_content": {
+      "content_type": "JSON",
+      "json_mapping": {
+        "nesting_delimiter": "__",
+        "chunk_size": 2,
+        "column_data_types": {
+          "autodetect": true,
+          "datatype_override": []
+        },
+        "request_data_wrapper": "",
+        "column_names_override": {}
+      },
+      "iterate_by_columns": []
+    }
+  },"authorization": {
+        "oauth_api": {
+            "credentials": {
+                "#data": "{\"status\": \"ok\",\"access_token\": \"testToken\", \"mac_secret\": \"iAreSoSecret123\"}",
+                "appKey": "clientId",
+                "#appSecret": "clientSecret"
+            }
+        }
+    }
+}

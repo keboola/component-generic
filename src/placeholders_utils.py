@@ -12,6 +12,6 @@ def get_data_from_path(json_path: str, data: Dict[str, Any], separator: str = '.
         if key not in data:
             if strict:
                 raise NoDataFoundException(f"Key '{key}' not found in login data.")
-            return None
+            return ''
         data = data[key]
     return data

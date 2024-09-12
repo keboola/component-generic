@@ -2,14 +2,15 @@ import inspect
 from abc import ABC, abstractmethod
 
 from requests.auth import AuthBase, HTTPBasicAuth
-from typing import Callable, Union, Dict
+from typing import Callable, Union, Dict, Literal
 from urllib.parse import urlencode
 import requests
 import json
 from placeholders_utils import get_data_from_path
 import re
+import base64
 
-from configuration import ContentType, ConfigHelpers, AuthMethodConverter, WriterConfiguration
+from configuration import ContentType, ConfigHelpers, AuthMethodConverter, WriterConfiguration, build_configuration
 
 
 class AuthBuilderError(Exception):
@@ -34,7 +35,7 @@ class AuthMethodBase(ABC):
 class AuthMethodBuilder:
 
     @classmethod
-    def build(cls, config: WriterConfiguration, **parameters):
+    def build(cls, raw_config, **parameters):
         """
 
         Args:
@@ -44,6 +45,7 @@ class AuthMethodBuilder:
         Returns:
 
         """
+        config = build_configuration(raw_config.parameters)
         supported_actions = cls.get_methods()
 
         auth_type = config.api.authentication.type
@@ -54,6 +56,13 @@ class AuthMethodBuilder:
 
         if auth_type == 'Login':
             parameters = AuthMethodConverter.convert_login(config)
+        elif auth_type == 'OAuth20ClientCredentials':
+            parameters = AuthMethodConverter.convert_login(config)
+
+            oauth = raw_config.oauth_credentials
+            parameters['client_id'] = oauth.appKey
+            parameters['client_secret'] = oauth.appSecret
+            parameters['scopes'] = oauth.data.get('scopes', [])
 
         parameters = cls._convert_secret_parameters(supported_actions[auth_type], **parameters)
 
@@ -64,7 +73,7 @@ class AuthMethodBuilder:
     @staticmethod
     def _validate_method_arguments(method_obj: object, **args):
         class_prefix = f"_{method_obj.__name__}__"
-        arguments = [p for p in inspect.signature(method_obj.__init__).parameters if p != 'self']
+        arguments = [p for p in inspect.signature(method_obj.__init__).parameters if p not in {'self', 'kwargs'}]
 
         missing_arguments = []
         for p in arguments:
@@ -80,9 +89,11 @@ class AuthMethodBuilder:
             new_parameters[p.replace('#', f'_{method_obj.__name__}__')] = parameters[p]
         return new_parameters
 
+
+
     @staticmethod
     def get_methods() -> Dict[str, Callable]:
-        supported_actions = {}
+        supported_actions = {"OAuth20ClientCredentials": OAuth20ClientCredentials}
         for c in AuthMethodBase.__subclasses__():
             supported_actions[c.__name__] = c
         return supported_actions
@@ -164,7 +175,8 @@ class ApiKey(AuthMethodBase, AuthBase):
 
 class Login(AuthMethodBase, AuthBase):
 
-    def __init__(self, login_endpoint: str, method: str = 'GET',
+    def __init__(self, login_endpoint: str,
+                 method: str = 'GET',
                  login_query_parameters: dict = None,
                  login_query_body=None,
                  login_content_type: str = ContentType.json.value,
@@ -267,3 +279,81 @@ class Login(AuthMethodBase, AuthBase):
             r.url = f"{r.url}?{urlencode(self.api_request_query_parameters)}"
         r.headers.update(self.api_request_headers)
         return r
+
+
+class OAuth20ClientCredentials(Login):
+
+    def __init__(self, login_endpoint: str, method: str = 'GET',
+                 login_query_parameters: dict = None,
+                 login_query_body=None,
+                 login_content_type: str = ContentType.json.value,
+                 login_headers: dict = None,
+                 api_request_headers: dict = None, api_request_query_parameters: dict = None,
+                 client_secret: str = None,
+                 client_id: str = None,
+                 auth_type: Literal['client_secret_post', 'client_secret_basic'] = 'client_secret_basic',
+                 scopes: list[str] = None,
+                 ):
+
+        """
+
+        Args:
+            login_endpoint:
+            client_secret:
+            client_id:
+            method: 'client_secret_post' or 'client_secret_basic'
+            scopes:
+        """
+
+
+        data = {"grant_type": "client_credentials"}
+
+        if scopes:
+            data['scope'] = ' '.join(scopes)
+
+        if auth_type == 'client_secret_post':
+            data['client_id'] = client_id
+            data['client_secret'] = client_secret
+        elif auth_type == 'client_secret_basic':
+            credentials = f"{client_id}:{client_secret}"
+            base64_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
+            login_headers = {"Authorization": f"Basic {base64_credentials}",
+                             "Content-Type": "application/x-www-form-urlencoded"}
+
+        super().__init__(
+            login_endpoint=login_endpoint,
+            method=method,
+            login_query_parameters=login_query_parameters,
+            login_query_body=login_query_body,
+            login_content_type=login_content_type,
+            login_headers=login_headers,
+            api_request_headers=api_request_headers,
+            api_request_query_parameters=api_request_query_parameters
+        )
+
+    # def login(self) -> Union[AuthBase, Callable]:
+    #     data = {"grant_type": "client_credentials"}
+    #     auth = None
+    #     if self.scopes:
+    #         data['scope'] = ' '.join(self.scopes)
+    #
+    #     if self.method == 'client_secret_post':
+    #         data['client_id'] = self.client_id
+    #         data['client_secret'] = self.client_secret
+    #     elif self.method == 'client_secret_basic':
+    #         auth = (self.client_id, self.client_secret)
+    #
+    #     response = requests.request('POST', self.login_endpoint, data=data, auth=auth)
+    #
+    #     response.raise_for_status()
+    #
+    #     self.auth_header = {'Authorization': f"Bearer {response.json()['access_token']}"}
+    #
+    #     return self
+    #
+    # def get_secrets(self) -> list[str]:
+    #     return [self.auth_header['Authorization']]
+    #
+    # def __call__(self, r):
+    #     r.headers.update(self.auth_header)
+    #     return r

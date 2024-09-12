@@ -76,6 +76,7 @@ class Component(ComponentBase):
         # build authentication method
         auth_method = None
         authentication = self._configuration.api.authentication
+
         try:
             if authentication:
                 # evaluate user_params inside the user params itself
@@ -83,7 +84,7 @@ class Component(ComponentBase):
                 user_params = ConfigHelpers().fill_in_user_parameters(user_params, user_params)
                 # apply user parameters
                 auth_method_params = ConfigHelpers().fill_in_user_parameters(authentication.parameters, user_params)
-                auth_method = AuthMethodBuilder.build(self._configuration, **auth_method_params)
+                auth_method = AuthMethodBuilder.build(self.configuration, **auth_method_params)
         except AuthBuilderError as e:
             raise UserException(e) from e
 
