@@ -10,7 +10,7 @@ from placeholders_utils import get_data_from_path
 import re
 import base64
 
-from configuration import ContentType, ConfigHelpers, AuthMethodConverter, build_configuration
+from configuration import ContentType, ConfigHelpers, AuthMethodConverter, WriterConfiguration, build_configuration
 
 
 class AuthBuilderError(Exception):
@@ -45,7 +45,11 @@ class AuthMethodBuilder:
         Returns:
 
         """
-        config = build_configuration(raw_config.parameters)
+        if not isinstance(raw_config, WriterConfiguration):
+            config = build_configuration(raw_config.parameters)
+        else:
+            config = raw_config
+
         supported_actions = cls.get_methods()
 
         auth_type = config.api.authentication.type
