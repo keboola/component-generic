@@ -314,6 +314,12 @@ class OAuth20ClientCredentials(Login):
         if auth_type == 'client_secret_post':
             data['client_id'] = client_id
             data['client_secret'] = client_secret
+            login_query_body = data
+        elif auth_type == 'client_secret_post_form':
+            data['client_id'] = client_id
+            data['client_secret'] = client_secret
+            login_query_parameters = data
+            login_headers = {"Content-Type": "application/x-www-form-urlencoded"}
         elif auth_type == 'client_secret_basic':
             credentials = f"{client_id}:{client_secret}"
             base64_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')

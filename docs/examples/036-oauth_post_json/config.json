@@ -7,14 +7,14 @@
         "format": "json",
         "parameters": {
           "loginRequest": {
-            "endpoint": "/035-oauth_basic/login",
-            "method": "GET",
-            "type": "client_secret_basic",
+            "endpoint": "/036-oauth_post_json/login",
+            "method": "POST",
+            "type": "client_secret_post_json",
             "headers": {}
         },
         "apiRequest": {
           "headers": {
-            "X-ApiToken": {"response": "access_token" }
+            "X-ApiToken": {"response": "access_token"}
           }
         }
         }
@@ -25,7 +25,7 @@
     },
     "request_parameters": {
       "method": "POST",
-      "endpoint_path": "/035-oauth_basic/orders",
+      "endpoint_path": "/036-oauth_post_json/orders",
       "headers": {
         "Content-Type": "application/json"
       },
