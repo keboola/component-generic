@@ -312,7 +312,7 @@ class OAuth20ClientCredentials(Login):
         if scopes:
             data['scope'] = ' '.join(scopes)
 
-        if auth_type == 'client_secret_post':
+        if auth_type == 'client_secret_post_json':
             data['client_id'] = client_id
             data['client_secret'] = client_secret
             login_query_body = data
