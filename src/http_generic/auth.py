@@ -10,7 +10,7 @@ from placeholders_utils import get_data_from_path
 import re
 import base64
 
-from configuration import ContentType, ConfigHelpers, AuthMethodConverter, WriterConfiguration, build_configuration
+from configuration import ContentType, ConfigHelpers, AuthMethodConverter, build_configuration
 
 
 class AuthBuilderError(Exception):
@@ -88,8 +88,6 @@ class AuthMethodBuilder:
         for p in parameters:
             new_parameters[p.replace('#', f'_{method_obj.__name__}__')] = parameters[p]
         return new_parameters
-
-
 
     @staticmethod
     def get_methods() -> Dict[str, Callable]:
@@ -305,7 +303,6 @@ class OAuth20ClientCredentials(Login):
             scopes:
         """
 
-
         data = {"grant_type": "client_credentials"}
 
         if scopes:
@@ -336,30 +333,3 @@ class OAuth20ClientCredentials(Login):
             api_request_headers=api_request_headers,
             api_request_query_parameters=api_request_query_parameters
         )
-
-    # def login(self) -> Union[AuthBase, Callable]:
-    #     data = {"grant_type": "client_credentials"}
-    #     auth = None
-    #     if self.scopes:
-    #         data['scope'] = ' '.join(self.scopes)
-    #
-    #     if self.method == 'client_secret_post':
-    #         data['client_id'] = self.client_id
-    #         data['client_secret'] = self.client_secret
-    #     elif self.method == 'client_secret_basic':
-    #         auth = (self.client_id, self.client_secret)
-    #
-    #     response = requests.request('POST', self.login_endpoint, data=data, auth=auth)
-    #
-    #     response.raise_for_status()
-    #
-    #     self.auth_header = {'Authorization': f"Bearer {response.json()['access_token']}"}
-    #
-    #     return self
-    #
-    # def get_secrets(self) -> list[str]:
-    #     return [self.auth_header['Authorization']]
-    #
-    # def __call__(self, r):
-    #     r.headers.update(self.auth_header)
-    #     return r

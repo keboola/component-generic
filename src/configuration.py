@@ -500,6 +500,7 @@ class AuthMethodConverter:
 
         return parameters
 
+
 def build_user_parameters(configuration: dict) -> dict:
     """
     Build user parameters from configuration
