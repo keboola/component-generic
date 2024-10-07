@@ -19,6 +19,8 @@ services:
     command:
       - /bin/sh
       - /code/scripts/build_n_test.sh
+    links:
+      - mock-server
   functional-tests:
     # Run examples against mock server
     build: .
