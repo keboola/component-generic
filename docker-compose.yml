@@ -21,6 +21,8 @@ services:
       - /code/scripts/build_n_test.sh
     links:
       - mock-server
+    depends_on:
+      - mock-server
   functional-tests:
     # Run examples against mock server
     build: .
