@@ -264,9 +264,13 @@ class Component(ComponentBase):
 
         # convert rows
         i = 1
+        log_message = ''
         for json_payload in converter.convert_stream(reader):
             if log:
-                logging.info(f'Sending JSON data chunk {i}')
+                log_message += f'Sending JSON data chunk {i}\n'
+                if i % 50 == 0:
+                    logging.info(log_message)
+                    log_message = ''
             logging.debug(f'Sending  Payload: {json_payload} ')
 
             if request_content.content_type == 'JSON':
@@ -279,6 +283,7 @@ class Component(ComponentBase):
             self._client.send_request(method=request_parameters.method, endpoint_path=url,
                                       **additional_request_params)
             i += 1
+        logging.info(log_message)
         in_stream.close()
 
     def send_binary_data(self, url, additional_request_params, in_stream):
