@@ -6,6 +6,7 @@ from typing import List, Dict, Optional, Generator
 from csv2json.hone_csv2json import Csv2JsonConverter
 from keboola.component import CommonInterface
 
+
 class JsonConverter:
 
     def __init__(self, nesting_delimiter: str = '__',
