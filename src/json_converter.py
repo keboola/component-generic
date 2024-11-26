@@ -4,7 +4,7 @@ import sys
 from typing import List, Dict, Optional, Generator
 
 from csv2json.hone_csv2json import Csv2JsonConverter
-
+from keboola.component import CommonInterface
 
 class JsonConverter:
 
@@ -53,9 +53,19 @@ class JsonConverter:
                     json_string += ','
 
             json_string += ']' if self.chunk_size > 1 else ''
-            data = json.loads(json_string)
-            data = self._wrap_json_payload(data)
-            yield data
+            try:
+                data = json.loads(json_string)
+                data = self._wrap_json_payload(data)
+                yield data
+            except Exception as e:
+                logging.error(f'Error while converting chunk: {e}')
+
+                file = CommonInterface().create_out_file_definition('error_string.txt')
+
+                with open(file.full_path, 'w') as f:
+                    f.write(json_string)
+
+                logging.info('JSON saved to storage as error_string.txt')
 
     def _wrap_json_payload(self, data: dict):
         if not self.data_wrapper:
