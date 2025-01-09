@@ -286,6 +286,246 @@ header: `"authorization": "Bearer XXXX""`
 
 See [example 030](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/030-bearer-token-auth)
 
+#### ApiKey in query
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "ApiKey",
+      "parameters": {
+        "#token": {
+          "attr": "#__password"
+        },
+        "key": "token",
+        "position": "query"
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "XXXX"
+  }
+}
+```
+
+See [example 031](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/031-auth-token-query)
+
+#### ApiKey in header
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "ApiKey",
+      "parameters": {
+        "#token": {
+          "attr": "#__password"
+        },
+        "key": "token",
+        "position": "headers"
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "XXXX"
+  }
+}
+```
+
+See [example 032](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/032-auth-token-header)
+
+#### Login - token in query
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "Login",
+      "parameters": {
+        "loginRequest": {
+          "endpoint": "/033-auth-login-query/login",
+          "method": "GET",
+          "headers": {
+            "X-Login": "JohnDoe",
+            "X-Password": {
+              "attr": "#__password"
+            }
+          }
+        },
+        "apiRequest": {
+          "query": {
+            "token": {
+              "response": "authorization.token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "TopSecret"
+  }
+}
+```
+
+See [example 033](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/033-auth-login-query)
+
+#### Login - token in header
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "Login",
+      "parameters": {
+        "loginRequest": {
+          "endpoint": "/034-auth-login/login",
+          "method": "GET",
+          "headers": {
+            "X-Login": "JohnDoe",
+            "X-Password": {
+              "attr": "#__password"
+            }
+          }
+        },
+        "apiRequest": {
+          "headers": {
+            "X-ApiToken": {
+              "response": "authorization.token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "TopSecret"
+  }
+}
+```
+
+See [example 034](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/034-auth-login)
+
+#### OAuth 2.0 Client Credentials - GET
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "OAuth20ClientCredentials",
+      "format": "json",
+      "parameters": {
+        "loginRequest": {
+          "endpoint": "/035-oauth_basic/login",
+          "method": "GET",
+          "type": "client_secret_basic",
+          "headers": {}
+        },
+        "apiRequest": {
+          "headers": {
+            "X-ApiToken": {
+              "response": "access_token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "TopSecret"
+  }
+}
+```
+
+See [example 035](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/035-oauth_basic)
+
+#### OAuth 2.0 Client Credentials - POST JSON
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "OAuth20ClientCredentials",
+      "format": "json",
+      "parameters": {
+        "loginRequest": {
+          "endpoint": "/036-oauth_post_json/login",
+          "method": "POST",
+          "type": "client_secret_post_json",
+          "headers": {}
+        },
+        "apiRequest": {
+          "headers": {
+            "X-ApiToken": {
+              "response": "access_token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "TopSecret"
+  }
+}
+```
+
+See [example 036](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/036-oauth_post_json)
+
+#### OAuth 2.0 Client Credentials - POST form
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "OAuth20ClientCredentials",
+      "format": "json",
+      "parameters": {
+        "loginRequest": {
+          "endpoint": "/037-oauth_post_form/login",
+          "method": "GET",
+          "type": "client_secret_post_form",
+          "headers": {}
+        },
+        "apiRequest": {
+          "headers": {
+            "X-ApiToken": {
+              "response": "access_token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "TopSecret"
+  }
+}
+```
+
+See [example 037](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/037-oauth_post_form)
+
 ### SSL Verification
 
 Allows turning of the SSL certificate verification. Use with caution. When set to false the certificate verification is
