@@ -844,7 +844,7 @@ and [example 23](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/s
 
 ### Iterate By Columns
 
-This parameter allows requests to be performed iteratively based on data  from specific columns in the source table. These column values can be used as
+This parameter allows requests to be performed iteratively based on data from specific columns in the source table. These column values can be used as
 placeholders within `request_options`. The input table is processed row by row (1 row = 1 request).
 
 ```json
@@ -861,8 +861,8 @@ These values will be injected into:
 
 - `request_parameters.endpoint_path` (if a placeholder like `/user/[[id]]` is used).
 - `user_parameters` (replacing parameters with matching names). This
-  allows for changing request parameters dynamically `www.example.com/api/user?date=xx` where the `date`
-  value is specified like:
+  allows for dynamically changing request parameters, such as `www.example.com/api/user?date=xx`, where the `date`
+  value is specified as follows:
 
 ```json
 
@@ -880,28 +880,23 @@ These values will be injected into:
 
 ```
 
-**NOTE** The iteration columns may be specified for requests of any content type. The `chunk_size` parameter in JSON
-mapping is overridden to `1`.
+**Note:** When `iterate_by_columns` is enabled, the `chunk_size` in JSON mapping is overridden to `1`.
 
-See the example configurations:
+**Example configurations:**
 
-- [ex. 005](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/005-json-iterations/)
-- Empty request with
-  iterations [ex. 004](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/004-empty-request-iterations/)
-  ,
-  [ex. 22](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/022-empty-request-iterations-delete/)
-- [ex. 011 placeholders in query parameters](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/011-simple-json-user-parameters-from-iterations/)
+- [Example 005](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/005-json-iterations/)
+- Empty request with iterations [example 004](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/004-empty-request-iterations/),
+  [example 22](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/022-empty-request-iterations-delete/)
+- [Example 011: placeholders in query parameters](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/011-simple-json-user-parameters-from-iterations/)
 
-##### Example
-
-Let's have this table on the input:
+##### Example Input Table
 
 | id | date       | name  | email      | address |
 |----|------------|-------|------------|---------|
 | 1  | 01.01.2020 | David | d@test.com | asd     |
 | 2  | 01.02.2020 | Tom   | t@test.com | asd     |
 
-Consider following request options:
+Consider the following request options:
 
 ```json
 "request_parameters": {
@@ -925,35 +920,34 @@ Consider following request options:
 
 The writer will run in two iterations:
 
-**FIRST** With data
+**First request:**
 
 | name  | email      | address |
 |-------|------------|---------|
 | David | d@test.com | asd     |
 
-Sent to `www.example.com/api/user/1?date=01.01.2020`
+Sent to `www.example.com/api/user/1?date=01.01.2020`.
 
-**SECOND** with data
+**Second request:** 
 
 | name  | email      | address |
 |-------|------------|---------|
 | Tom   | t@test.com | asd     |
 
-Sent to `www.example.com/api/user/2?date=01.02.2020`
+Sent to `www.example.com/api/user/2?date=01.02.2020`.
 
 ## Dynamic Functions
 
-The application support functions that may be applied on parameters in the configuration to get dynamic values.
+This application supports dynamic functions that can be applied to parameters in the configuration for generating values dynamically.
 
-Currently these functions work only in the `user_parameters` scope. Place the required function object instead of the
+Currently, functions only work within the `user_parameters` scope. Place the required function object instead of the
 user parameter value.
 
-The function values may refer to another user params using `{"attr": "custom_par"}`
+Function values can refer to other user parameters using the syntax: `{"attr": "custom_par"}`.
 
-**NOTE:** If you are missing any function let us know or place a PR to
+**Note:** If you require additional functions, let us know or submit a pull request to
 our [repository](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/). It's as simple as adding an
-arbitrary method into
-the [UserFunctions class](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/src/user_functions.py#lines-7)
+arbitrary method to the [UserFunctions class](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/src/user_functions.py#lines-7).
 
 **Function object**
 
@@ -995,17 +989,18 @@ Nesting of functions is supported:
 
 #### string_to_date
 
-Function converting string value into a datestring in specified format. The value may be either date in `YYYY-MM-DD`
-format, or a relative period e.g. `5 hours ago`, `yesterday`,`3 days ago`, `4 months ago`, `2 years ago`, `today`.
+This function converts a string into a formatted date string. The input can be:
+- A specific date in the `YYYY-MM-DD` format (e.g., `2024-01-01`). 
+- A relative period (e.g., `5 hours ago`, `yesterday`,`3 days ago`, `4 months ago`, `2 years ago`, `today`).
 
-The result is returned as a date string in the specified format, by default `%Y-%m-%d`
+The result is returned as a date string in the specified format (default: `%Y-%m-%d`).
 
 The function takes two arguments:
 
-1. [REQ] Date string
-2. [OPT] result date format. The format should be defined as in http://strftime.org/
+1. [REQUIRED] Date string
+2. [OPTIONAL] Desired date format (defined as in http://strftime.org/)
 
-**Example**
+**Example:**
 
 ```json
 {
@@ -1022,7 +1017,7 @@ The function takes two arguments:
 ```
 
 The above value is then available in [supported contexts](/extend/generic-writer/configuration/#referencing-parameters)
-as:
+as follows:
 
 ```json
 "to_date": {"attr": "yesterday_date"}
@@ -1030,11 +1025,11 @@ as:
 
 #### concat
 
-Concatenate an array of strings.
+Concatenates an array of strings into a single value.
 
-The function takes an array of strings to concatenate as an argument
+The function accepts an array of strings as its argument and concatenates them into one.
 
-**Example**
+**Example:**
 
 ```json
 {
@@ -1050,7 +1045,7 @@ The function takes an array of strings to concatenate as an argument
 }
 ```
 
-The above value is then available in supported contexts as:
+The resulting value is then available in supported contexts as follows:
 
 ```json
 "url": {"attr": "url"}
@@ -1058,9 +1053,9 @@ The above value is then available in supported contexts as:
 
 #### base64_encode
 
-Encodes string in BASE64
+Encodes a string in BASE64 format.
 
-**Example**
+**Example:**
 
 ```json
 {
@@ -1075,7 +1070,7 @@ Encodes string in BASE64
 }
 ```
 
-The above value is then available in contexts as:
+The resulting value is then available in contexts as follows:
 
 ```json
 "token": {"attr": "token"}
@@ -1083,8 +1078,7 @@ The above value is then available in contexts as:
 
 ## Development
 
-If required, change the local data folder (the `CUSTOM_FOLDER` placeholder) path to your custom path in the docker-compose
-file:
+To customize the local data folder path, replace the `CUSTOM_FOLDER` placeholder with your desired path in the docker-compose.yml file:
 
 ```yaml
     volumes:
@@ -1092,7 +1086,7 @@ file:
       - ./CUSTOM_FOLDER:/data
 ```
 
-Clone this repository, initialize the workspace, and run the component with the following commands:
+Clone this repository, initialize the workspace, and run the component using the following commands:
 
 ```
 git clone repo_path my-new-component
@@ -1101,7 +1095,7 @@ docker-compose build
 docker-compose run --rm dev
 ```
 
-Run the test suite and lint checks using this command:
+Run the test suite and perform lint checks using this command:
 
 ```
 docker-compose run --rm test
@@ -1109,5 +1103,5 @@ docker-compose run --rm test
 
 # Integration
 
-For information about deployment and integration with Keboola, please refer to
+For details about deployment and integration with Keboola, refer to
 the [deployment section of the developer documentation](https://developers.keboola.com/extend/component/deployment/). 
