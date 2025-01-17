@@ -6,7 +6,7 @@ Description
 
 [TOC]
 
-The Keboola Generic writer component allows you to write data to a specified endpoint in a specified format. It currently supports a single
+The Keboola Generic Writer component allows you to write data to a specified endpoint in a specified format. It currently supports a single
 table and a single endpoint per configuration.
 
 The data can be sent in two ways:
@@ -144,7 +144,7 @@ etc.
 
 The URL of the endpoint where the payload is being sent, e.g., `www.example.com/api/v1`.
 
-**Note:** The URL may contain placeholders for iterations wrapped in `[[]]`,e.g., ``www.example.com/api/v[[api_version]]``.  
+**Note:** The URL may contain placeholders for iterations wrapped in `[[]]`, e.g., ``www.example.com/api/v[[api_version]]``.  
 However, in most cases, this should be set at the `endpoint_path` level.
 
 The parameter `api_version` must be specified in the `user_parameters` section or in the source data itself if the column is
@@ -292,7 +292,7 @@ See [example 030](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/
 }
 ```
 
-See [example 031](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/031-auth-token-query)
+See [example 031](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/031-auth-token-query).
 
 #### API key in a header
 
@@ -319,7 +319,7 @@ See [example 031](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/
 }
 ```
 
-See [example 032](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/032-auth-token-header)
+See [example 032](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/032-auth-token-header).
 
 #### Login — token in a query
 
@@ -1024,8 +1024,6 @@ as follows:
 ```
 
 #### concat
-
-Concatenates an array of strings into a single value.
 
 The function accepts an array of strings as its argument and concatenates them into one.
 
