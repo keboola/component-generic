@@ -65,7 +65,8 @@ def binary_payload_matcher(params):
             return False, f"Cannot parse request.content. {e}"
         finally:
             # request_body.close()
-            os.remove(result)
+            # os.remove(result)
+            pass
 
     return match
 
@@ -105,7 +106,8 @@ def binary_gz_payload_matcher(params):
             return False, f"Cannot parse request.content. {e}"
         finally:
             # request_body.close()
-            os.remove(result)
+            # os.remove(result)
+            pass
 
     return match
 
