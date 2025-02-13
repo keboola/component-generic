@@ -64,7 +64,7 @@ def binary_payload_matcher(params):
         except Exception as e:
             return False, f"Cannot parse request.content. {e}"
         finally:
-            request_body.close()
+            # request_body.close()
             os.remove(result)
 
     return match
@@ -104,7 +104,7 @@ def binary_gz_payload_matcher(params):
         except Exception as e:
             return False, f"Cannot parse request.content. {e}"
         finally:
-            request_body.close()
+            # request_body.close()
             os.remove(result)
 
     return match
@@ -145,6 +145,7 @@ def binary_payload_multi_matcher_to_string(strings_to_match):
         except Exception as e:
             return False, f"Cannot parse request.content. {e}"
         finally:
-            request_body.close()
+            # request_body.close()
+            pass
 
     return match
