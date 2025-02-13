@@ -1,10 +1,14 @@
 import dataclasses
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Dict, Tuple
-from urllib.parse import urlparse
+from typing import List, Dict, Tuple, Optional, Literal
+from urllib.parse import urlparse, urljoin
 
 from keboola.component.dao import build_dataclass_from_dict
+import json
+import time
+from nested_lookup import nested_lookup
+from user_functions import UserFunctions
 
 
 @dataclass
@@ -19,6 +23,12 @@ class SubscriptableDataclass:
     def __setitem__(self, key, value):
         return setattr(self, key, value)
 
+
+# CONFIGURATION OBJECT
+class ContentType(str, Enum):
+    none = "none"
+    json = "json"
+    form = "form"
 
 # #### SUPPORTING DATACLASSES
 
@@ -83,6 +93,8 @@ class RequestContent(SubscriptableDataclass):
     content_type: str
     json_mapping: JsonMapping = None
     iterate_by_columns: List[str] = None
+    query_parameters: dict = field(default_factory=dict)
+    body: Optional[dict] = None
 
 
 # CONFIGURATION OBJECT
@@ -328,4 +340,195 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     result_config = WriterConfiguration(api=api_config, request_parameters=api_request, request_content=content,
                                         user_parameters=user_parameters)
     _handle_kbc_error_converting_objects(result_config)
+
     return result_config
+
+
+class ConfigHelpers:
+
+    def __init__(self):
+        self.user_functions = UserFunctions()
+
+    def fill_in_user_parameters(self, conf_objects: dict, user_param: dict,
+                                evaluate_conf_objects_functions: bool = True):
+        """
+        This method replaces user parameter references via attr + parses functions inside user parameters,
+        evaluates them and fills in the resulting values
+
+        Args:
+            conf_objects: Configuration that contains the references via {"attr": "key"} to user parameters or function
+                            definitions
+            user_param: User parameters that are used to fill in the values
+
+        Returns:
+
+        """
+        # time references
+        conf_objects = self.fill_in_time_references(conf_objects)
+        user_param = self.fill_in_time_references(user_param)
+        # convert to string minified
+        steps_string = json.dumps(conf_objects, separators=(',', ':'))
+        # dirty and ugly replace
+        for key in user_param:
+            if isinstance(user_param[key], dict):
+                # in case the parameter is function, validate, execute and replace value with result
+                res = self.perform_custom_function(key, user_param[key], user_param)
+                user_param[key] = res
+
+            lookup_str = '{"attr":"' + key + '"}'
+            steps_string = steps_string.replace(lookup_str, '"' + str(user_param[key]) + '"')
+        new_steps = json.loads(steps_string)
+        non_matched = nested_lookup('attr', new_steps)
+
+        if evaluate_conf_objects_functions:
+            for key in new_steps:
+                if isinstance(new_steps[key], dict):
+                    # in case the parameter is function, validate, execute and replace value with result
+                    res = self.perform_custom_function(key, new_steps[key], user_param)
+                    new_steps[key] = res
+
+        if non_matched:
+            raise ValueError(
+                'Some user attributes [{}] specified in parameters '
+                'are not present in "user_parameters" json_path.'.format(non_matched))
+        return new_steps
+
+    @staticmethod
+    def fill_in_time_references(conf_objects: dict):
+        """
+        This method replaces user parameter references via attr + parses functions inside user parameters,
+        evaluates them and fills in the resulting values
+
+        Args:
+            conf_objects: Configuration that contains the references via {"attr": "key"} to user parameters or function
+                            definitions
+
+        Returns:
+
+        """
+        # convert to string minified
+        steps_string = json.dumps(conf_objects, separators=(',', ':'))
+        # dirty and ugly replace
+
+        new_cfg_str = steps_string.replace('{"time":"currentStart"}', f'{int(time.time())}')
+        new_cfg_str = new_cfg_str.replace('{"time":"previousStart"}', f'{int(time.time())}')
+        new_config = json.loads(new_cfg_str)
+        return new_config
+
+    def perform_custom_function(self, key: str, function_cfg: dict, user_params: dict):
+        """
+        Perform custom function recursively (may be nested)
+        Args:
+            key: key of the user parameter wher the function is
+            function_cfg: conf of the function
+            user_params:
+
+        Returns:
+
+        """
+        function_cfg = self.fill_in_time_references(function_cfg)
+        if not isinstance(function_cfg, dict):
+            # in case the function was evaluated as time
+            return function_cfg
+
+        elif function_cfg.get('attr'):
+            return user_params[function_cfg['attr']]
+
+        if not function_cfg.get('function'):
+            for key in function_cfg:
+                function_cfg[key] = self.perform_custom_function(key, function_cfg[key], user_params)
+
+        new_args = []
+        if function_cfg.get('args'):
+            for arg in function_cfg.get('args'):
+                if isinstance(arg, dict):
+                    arg = self.perform_custom_function(key, arg, user_params)
+                new_args.append(arg)
+            function_cfg['args'] = new_args
+        if isinstance(function_cfg, dict) and not function_cfg.get('function'):
+            return function_cfg
+        return self.user_functions.execute_function(function_cfg['function'], *function_cfg.get('args', []))
+
+
+class AuthMethodConverter:
+    @classmethod
+    def convert_login(cls, config_parameters) -> dict:
+        method_mapping = {'GET': 'GET', 'POST': 'POST', 'FORM': 'POST'}
+        helpers = ConfigHelpers()
+        login_request: dict = config_parameters.api.authentication.parameters.get("loginRequest", {})
+        api_request: dict = config_parameters.api.authentication.parameters.get("apiRequest", {})
+        # evaluate functions and user parameters
+        user_parameters = build_user_parameters(config_parameters)
+        user_parameters = helpers.fill_in_user_parameters(user_parameters, user_parameters)
+        login_request_eval = helpers.fill_in_user_parameters(login_request, user_parameters)
+        # the function evaluation is left for the Auth method because of the response placeholder
+        api_request_eval = helpers.fill_in_user_parameters(api_request, user_parameters, False)
+
+        if not login_request:
+            raise ValueError('loginRequest configuration not found in the Login Authentication configuration')
+
+        login_endpoint: str = login_request_eval.get('endpoint')
+        login_url = urljoin(config_parameters.api.base_url, login_endpoint)
+
+        method = login_request_eval.get('method', 'GET')
+
+        auth_type = login_request_eval.get('type')
+
+        login_request_content: RequestContent = build_request_content(method, login_request_eval.get('params', {}))
+
+        try:
+            result_method: str = method_mapping[login_request_eval.get('method', 'GET').upper()]
+        except KeyError:
+            raise ValueError(f'Unsupported method: {login_request_eval.get("method")}')
+
+        login_query_parameters: dict = login_request_content.query_parameters
+        login_headers: dict = login_request_eval.get('headers', {})
+        api_request_headers: dict = api_request_eval.get('headers', {})
+        api_request_query_parameters: dict = api_request_eval.get('query', {})
+
+        parameters = {'login_endpoint': login_url,
+                      'method': result_method,
+                      'login_query_parameters': login_query_parameters,
+                      'login_headers': login_headers,
+                      'login_query_body': login_request_content.body,
+                      'login_content_type': login_request_content.content_type.value,
+                      'api_request_headers': api_request_headers,
+                      'api_request_query_parameters': api_request_query_parameters}
+
+        if auth_type:
+            parameters['auth_type'] = auth_type
+
+        return parameters
+
+
+def build_user_parameters(configuration: dict) -> dict:
+    """
+    Build user parameters from configuration
+    Args:
+        configuration: Configuration in v2 format
+
+    Returns: User parameters
+
+    """
+    config_excluded_keys = ['__AUTH_METHOD', '__NAME', '#__BEARER_TOKEN', 'jobs', 'outputBucket', 'incrementalOutput',
+                            'http', 'debug', 'mappings', ' #username', '#password', 'userData']
+    user_parameters = {}
+    for key, value in configuration.user_parameters.items():
+        if key not in config_excluded_keys:
+            user_parameters[key] = value
+    return user_parameters
+
+
+def build_request_content(method: Literal['GET', 'POST', 'FORM'], params: dict) -> RequestContent:
+    match method:
+        case 'GET':
+            request_content = RequestContent(ContentType.none, query_parameters=params)
+        case 'POST':
+            request_content = RequestContent(ContentType.json,
+                                             body=params)
+        case 'FORM':
+            request_content = RequestContent(ContentType.form,
+                                             body=params)
+        case _:
+            raise ValueError(f'Unsupported method: {method}')
+    return request_content

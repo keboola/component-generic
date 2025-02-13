@@ -1,0 +1,52 @@
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80",
+      "authentication": {
+        "type": "Login",
+        "parameters": {
+          "loginRequest": {
+            "endpoint": "/033-auth-login-query/login",
+            "method": "GET",
+            "headers": {
+              "X-Login": "JohnDoe",
+              "X-Password": {"attr":"#__password"}
+          }
+        },
+        "apiRequest": {
+          "query": {
+            "token": {
+              "response": "authorization.token"
+            }
+          }
+        }
+        }
+      }
+    },
+    "user_parameters": {
+      "#__password": "TopSecret"
+    },
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/033-auth-login-query/orders",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "query_parameters": {}
+    },
+    "request_content": {
+      "content_type": "JSON",
+      "json_mapping": {
+        "nesting_delimiter": "__",
+        "chunk_size": 2,
+        "column_data_types": {
+          "autodetect": true,
+          "datatype_override": []
+        },
+        "request_data_wrapper": "",
+        "column_names_override": {}
+      },
+      "iterate_by_columns": []
+    }
+  }
+}

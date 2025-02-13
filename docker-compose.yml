@@ -1,4 +1,4 @@
-version: "2"
+version: "2.4"
 services:
   # for development purposes
   dev:
@@ -19,6 +19,10 @@ services:
     command:
       - /bin/sh
       - /code/scripts/build_n_test.sh
+    links:
+      - mock-server
+    depends_on:
+      - mock-server
   functional-tests:
     # Run examples against mock server
     build: .

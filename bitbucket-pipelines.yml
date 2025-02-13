@@ -13,7 +13,7 @@ pipelines:
           - docker -v
           - docker run $APP_IMAGE flake8 /code/ --config=/code/flake8.cfg
           - echo "Running unit-tests..."
-          - docker run $APP_IMAGE python -m unittest discover
+          - docker-compose run test
           # run functional tests
           - docker-compose run functional-tests
           # push test image to ecr - uncomment for testing before deployment

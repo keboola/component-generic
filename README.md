@@ -1,68 +1,51 @@
-# KBC Generic Writer
+# Keboola Generic Writer
 
 Description
 
-**Table of contents:**
+**Table of Contents:**
 
 [TOC]
 
-This component allows you to write data to a specified endpoint in a specified format. It currently supports single
-table and single endpoint per configuration.
+The Keboola Generic Writer component allows you to write data to a specified endpoint in a specified format. It currently supports a single
+table and a single endpoint per configuration.
 
 The data can be sent in two ways:
 
-1. Send all content at once - either BINARY or JSON in chunks
-2. [Iterate](/extend/generic-writer/configuration/#iterate-by-columns) through each row - where the data is sent in
-   iterations specified in the input data. By default 1 row = 1 iteration. This allows to change the endpoint
-   dynamically based on the input using placeholders: `www.example.com/api/user/{{id}}`. Or sending data with different
-   user parameters that are present in the input table.
+1. **Send all content at once:** Data is sent either as BINARY or JSON in chunks.
+2. **[Iterate](/extend/generic-writer/configuration/#iterate-by-columns) through each row:** Data is sent iteratively, as specified in the input data. By default, 1 row = 1 iteration. This mode allows dynamic changes to the endpoint
+   based on input using placeholders (e.g., `www.example.com/api/user/{{id}}`). It can also send data with different user parameters present in the input table.
 
-### Configuration parameters
+### Configuration Parameters
 
-*Click on the section names if you want to learn more.*
+*Click on the section names for more details.*
 
-- [**api**](/extend/generic-writer/configuration/#api/) --- [REQUIRED] sets the basic properties of the API.
-    - [**base_url**](/extend/generic-writer/configuration/#base-url) ---  [REQUIRED] defines the URL to which the API
-      requests should be sent.
-    - [**authentication**](/extend/generic-writer/configuration/#authentication) --- needs to be configured for any API
-      which is not public.
-    - [**retry_config**](/extend/generic-writer/configuration/#retry-config) --- automatically, and repeatedly, retries
-      failed HTTP requests.
-    - [**default_query_parameters**](/extend/generic-writer/configuration/#default-query-parameters) --- sets the
-      default query parameters sent with each API call.
-    - [**default_headers**](/extend/generic-writer/configuration/#default-headers) --- sets the default query headers
-      sent with each API call.
-    - [**ssl_verification**](/extend/generic-writer/configuration/#ssl-verification) --- allows turning of the SSL
-      certificate verification. Use with caution.
-    - [**timeout**](/extend/generic-writer/configuration/#timeout) --- maximum time in seconds for which the component
-      waits after each request (defaults to None if not set)
-- [**user_parameters**](/extend/generic-writer/configuration/#user-parameters) --- user parameters to be used in various
-  contexts, e.g. passwords. Supports dynamic functions
-- [**request_parameters**](/extend/generic-writer/configuration/#request-parameters) -- [REQUIRED] HTTP parameters of
-  the request
-    - [**method**](/extend/generic-writer/configuration/#method) --- [REQUIRED] defines the HTTP method of the requests.
-    - [**endpoint_path**](/extend/generic-writer/configuration/#enpoint-path) --- [REQUIRED] relative path of the
-      endpoint.
-    - [**query_parameters**](/extend/generic-writer/configuration/#query-parameters) --- query parameters sent with each
-      request
-    - [**headers**](/extend/generic-writer/configuration/#headers) --- headers sent with each request
-- [**request_content**](/extend/generic-writer/configuration/#request-content) --- [REQUIRED] defines how the data is
-  sent
-    - [**content_type**](/extend/generic-writer/configuration/#content-type) --- [REQUIRED] defines how the data is
-      transferred (
-      JSON, binary file, Empty, etc.)
-    - [**json_mapping**](/extend/generic-writer/configuration/#json-mapping) --- defines the CSV 2 JSON conversion in
-      case of JSON content type.
-    - [**iterate_by_columns**](/extend/generic-writer/configuration/#iterate-by-columns) --- defines set of columns in
-      the input data that are excluded from the content and may be used instead of placeholders within the
-      request_options. The input table is iterated row by row, e.g. 1 row = 1 request
+- [**api**](/extend/generic-writer/configuration/#api/) --- [REQUIRED] Specifies the basic properties of the API.
+    - [**base_url**](/extend/generic-writer/configuration/#base-url) ---  [REQUIRED] Defines the URL to which the API
+      requests are sent.
+    - [**authentication**](/extend/generic-writer/configuration/#authentication) --- Configuration for APIs that are not public.
+    - [**retry_config**](/extend/generic-writer/configuration/#retry-config) --- Automatically retries failed HTTP requests.
+    - [**default_query_parameters**](/extend/generic-writer/configuration/#default-query-parameters) --- Default query parameters sent with each API call.
+    - [**default_headers**](/extend/generic-writer/configuration/#default-headers) --- Default query headers sent with each API call.
+    - [**ssl_verification**](/extend/generic-writer/configuration/#ssl-verification) --- Option to disable SSL certificate verification (use with caution).
+    - [**timeout**](/extend/generic-writer/configuration/#timeout) --- Maximum time (in seconds) the component waits after each request (defaults to None if not set).
+- [**user_parameters**](/extend/generic-writer/configuration/#user-parameters) --- User-defined parameters used in various contexts, such as passwords. Supports dynamic functions.
+- [**request_parameters**](/extend/generic-writer/configuration/#request-parameters) -- [REQUIRED] HTTP parameters of the request:
+    - [**method**](/extend/generic-writer/configuration/#method) --- [REQUIRED] Specifies the HTTP method of the requests.
+    - [**endpoint_path**](/extend/generic-writer/configuration/#enpoint-path) --- [REQUIRED] Defines the relative path of the endpoint.
+    - [**query_parameters**](/extend/generic-writer/configuration/#query-parameters) --- Query parameters sent with each request.
+    - [**headers**](/extend/generic-writer/configuration/#headers) --- Headers sent with each request.
+- [**request_content**](/extend/generic-writer/configuration/#request-content) --- [REQUIRED] Defines how the data is sent:
+    - [**content_type**](/extend/generic-writer/configuration/#content-type) --- [REQUIRED] Specifies the data transfer format (e.g., JSON, binary file, empty, etc.)
+    - [**json_mapping**](/extend/generic-writer/configuration/#json-mapping) --- Defines the CSV2-to-JSON conversion for JSON content type.
+    - [**iterate_by_columns**](/extend/generic-writer/configuration/#iterate-by-columns) --- Specifies a set of columns in the input data excluded from the content. These columns may be used as placeholders
+      in request_options. The input table is iterated row by row (1 row = 1 request).
 
-There are also simple pre-defined [**functions**](/extend/generic-writer/configuration/#dynamic-functions) available,
-adding extra flexibility when needed.
+Additionally, there are pre-defined [**dynamic functions**](/extend/generic-writer/configuration/#dynamic-functions) available,
+providing extra flexibility when needed.
 
 ### Configuration Map
 
-The following sample configuration shows various configuration options and their nesting. You can use the map to
+The following sample configuration shows various configuration options and their nesting. Use the map to
 navigate between them.
 
 ```json
@@ -152,28 +135,28 @@ navigate between them.
 }
 ```
 
-## Api
+## API
 
-Defines the basic properties of the API that may be shared for multiple endpoints. Such as authentication, base url,
+Defines the basic properties of the API that may be shared for multiple endpoints, such as authentication, base URL,
 etc.
 
 ### Base URL
 
-An URL of the endpoint where the payload is being sent. e.g. `www.example.com/api/v1`.
+The URL of the endpoint where the payload is being sent, e.g., `www.example.com/api/v1`.
 
-**NOTE** May contain placeholders for iterations wrapped in `[[]]`,e.g. ``www.example.com/api/v[[api_version]]``.  
-But in most cases you would set this up on the `endpoint_path` level.
+**Note:** The URL may contain placeholders for iterations wrapped in `[[]]`, e.g., ``www.example.com/api/v[[api_version]]``.  
+However, in most cases, this should be set at the `endpoint_path` level.
 
-The parameter `api_version` needs to be specified in the `user_parameters` or in the source data itself if the column is
+The parameter `api_version` must be specified in the `user_parameters` section or in the source data itself if the column is
 set as an iteration parameter column.
 
 ### Retry Config
 
-Here you can set parameters of the request retry in case of failure.
+Configure parameters for retrying requests in case of failure.
 
-- `max_retries` --- Number of maximum retries before failure (DEFAULT `1`)
-- `codes` --- List of HTTP codes to retry on, e.g. [503, 429] (DEFAULT `(500, 502, 504)`)
-- `backoff_factor` --- backoff factor of the exponential backoff. (DEFAULT `0.3`)
+- `max_retries` --- Maximum number of retries before failing (default `1`).
+- `codes` --- List of HTTP codes to retry on, e.g., [503, 429] (default `(500, 502, 504)`).
+- `backoff_factor` --- Exponential backoff factor (default `0.3`).
 
 ```json
 "api": {
@@ -191,10 +174,9 @@ Here you can set parameters of the request retry in case of failure.
 
 ### Default Query Parameters
 
-Allows you to define default query parameters that are being sent with each request. This is useful for instance for
-authentication purposes. This is mostly useful for creating Generic Writer templates and registered components.
+Define parameters to be sent with each request. This is useful for authentication or when creating templates for the Generic Writer.
 
-**NOTE** That you can reference parameters defined in `user_parameters` using the `{"attr":"SOME_KEY"}` syntax.
+**Note:** You can reference parameters defined in `user_parameters` using the syntax `{"attr":"SOME_KEY"}`.
 
 ```json
         "api": {
@@ -210,10 +192,9 @@ _type":"json",
 
 ### Default Headers
 
-Allows you to define default query parameters that are being sent with each req This is mostly useful for creating
-Generic Writer templates and registered components.
+Define default headers sent with each request.
 
-**NOTE** That you can reference parameters defined in `user_parameters` using the `{"attr":"SOME_KEY"}` syntax.
+**Note:** Parameters in `user_parameters` can also be referenced using the syntax `{"attr":"SOME_KEY"}`.
 
 ```json
         "api": {
@@ -225,9 +206,9 @@ Generic Writer templates and registered components.
 
 ### Authentication
 
-Some APIs require authenticated requests to be made. This section allows selecting from predefined auth methods.
+Some APIs require authenticated requests. This section allows you to select from predefined authentication methods.
 
-The Authentication object is always in following format:
+The authentication object is always in the following format:
 
 ```json
 
@@ -239,12 +220,13 @@ The Authentication object is always in following format:
 }
 ```
 
-**NOTE** Parameters may be also referenced from the `user_parameters` section using the `{"attr":""}` syntax,
-see [example 025](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/025-simple-json-basic-http-auth-from-user-params)
+**Note:** Parameters may be referenced from the `user_parameters` section using the syntax `{"attr":""}`.
 
-#### BasicHttp
+See [example 025](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/025-simple-json-basic-http-auth-from-user-params).
 
-Basic HTTP authentication using username and password.
+#### Basic HTTP authentication
+
+Use a username and password for authentication.
 
 **Example**:
 
@@ -261,12 +243,11 @@ Basic HTTP authentication using username and password.
 }
 ```
 
-See [example 024](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/024-simple-json-basic-http-auth)
+See [example 024](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/024-simple-json-basic-http-auth).
 
-#### BearerToken
+#### Bearer Token
 
-Authorization using the `Bearer token` in the header. E.g. each request will be sent with
-header: `"authorization": "Bearer XXXX""`
+Use a `Bearer token` in the header (e.g., `"authorization": "Bearer XXXX""`).
 
 **Example**:
 
@@ -284,12 +265,251 @@ header: `"authorization": "Bearer XXXX""`
 }
 ```
 
-See [example 030](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/030-bearer-token-auth)
+See [example 030](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/030-bearer-token-auth).
+
+#### API key in a query
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "ApiKey",
+      "parameters": {
+        "#token": {
+          "attr": "#__password"
+        },
+        "key": "token",
+        "position": "query"
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "XXXX"
+  }
+}
+```
+
+See [example 031](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/031-auth-token-query).
+
+#### API key in a header
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "ApiKey",
+      "parameters": {
+        "#token": {
+          "attr": "#__password"
+        },
+        "key": "token",
+        "position": "headers"
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "XXXX"
+  }
+}
+```
+
+See [example 032](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/032-auth-token-header).
+
+#### Login — token in a query
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "Login",
+      "parameters": {
+        "loginRequest": {
+          "endpoint": "/033-auth-login-query/login",
+          "method": "GET",
+          "headers": {
+            "X-Login": "JohnDoe",
+            "X-Password": {
+              "attr": "#__password"
+            }
+          }
+        },
+        "apiRequest": {
+          "query": {
+            "token": {
+              "response": "authorization.token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "TopSecret"
+  }
+}
+```
+
+See [example 033](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/033-auth-login-query).
+
+#### Login — token in a header
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "Login",
+      "parameters": {
+        "loginRequest": {
+          "endpoint": "/034-auth-login/login",
+          "method": "GET",
+          "headers": {
+            "X-Login": "JohnDoe",
+            "X-Password": {
+              "attr": "#__password"
+            }
+          }
+        },
+        "apiRequest": {
+          "headers": {
+            "X-ApiToken": {
+              "response": "authorization.token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "TopSecret"
+  }
+}
+```
+
+See [example 034](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/034-auth-login).
+
+#### OAuth 2.0 client credentials — GET
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "OAuth20ClientCredentials",
+      "format": "json",
+      "parameters": {
+        "loginRequest": {
+          "endpoint": "/035-oauth_basic/login",
+          "method": "GET",
+          "type": "client_secret_basic",
+          "headers": {}
+        },
+        "apiRequest": {
+          "headers": {
+            "X-ApiToken": {
+              "response": "access_token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "TopSecret"
+  }
+}
+```
+
+See [example 035](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/035-oauth_basic).
+
+#### OAuth 2.0 client credentials — POST JSON
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "OAuth20ClientCredentials",
+      "format": "json",
+      "parameters": {
+        "loginRequest": {
+          "endpoint": "/036-oauth_post_json/login",
+          "method": "POST",
+          "type": "client_secret_post_json",
+          "headers": {}
+        },
+        "apiRequest": {
+          "headers": {
+            "X-ApiToken": {
+              "response": "access_token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "TopSecret"
+  }
+}
+```
+
+See [example 036](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/036-oauth_post_json).
+
+#### OAuth 2.0 client credentials — POST form
+
+**Example**:
+
+```json
+{
+  "api": {
+    "base_url": "http://mock-server:80",
+    "authentication": {
+      "type": "OAuth20ClientCredentials",
+      "format": "json",
+      "parameters": {
+        "loginRequest": {
+          "endpoint": "/037-oauth_post_form/login",
+          "method": "GET",
+          "type": "client_secret_post_form",
+          "headers": {}
+        },
+        "apiRequest": {
+          "headers": {
+            "X-ApiToken": {
+              "response": "access_token"
+            }
+          }
+        }
+      }
+    }
+  },
+  "user_parameters": {
+    "#__password": "TopSecret"
+  }
+}
+```
+
+See [example 037](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/037-oauth_post_form).
 
 ### SSL Verification
 
-Allows turning of the SSL certificate verification. Use with caution. When set to false the certificate verification is
-turned off.
+Allows turning off SSL certificate verification. **Use with caution.** When set to `false`, SSL verification is disabled.
 
 ```json
 
@@ -303,20 +523,19 @@ turned off.
 
 ### Timeout
 
-Optional parameter which allows you to define maximum timeout for each request. If not set, uses default requests value:
-None.
+Defines the maximum timeout for each request. If not set, the default value (`None`) is used:
 
-Possible values: (int, float)
-For more information, refer to [requests docs](https://requests.readthedocs.io/en/stable/user/advanced/#timeouts).
+Possible values: int, float
+
+For more information, refer to the [requests documentation](https://requests.readthedocs.io/en/stable/user/advanced/#timeouts).
 
 ## User Parameters
 
-In this section you can defined user parameters to be used in various contexts, e.g. passwords. This is also the place
-to use the [dynamic functions]().
+User parameters can be defined for use in various contexts, such as passwords. This section also supports [dynamic functions](https://developers.keboola.com/extend/generic-writer/configuration/#dynamic-functions).
 
-It allows referencing another values from `user_parameters` referenced by `{"attr":"par"}` notation.
+It allows referencing other values from `user_parameters` referenced by the notation `{"attr":"par"}`.
 
-**NOTE** Any parameters prefixed by `#` will be encrypted in the Keboola platform on configuration save.
+**Note:** Parameters prefixed with `#` are encrypted in the Keboola platform upon saving the configuration.
 
 ```json
         "user_parameters": {
@@ -337,27 +556,25 @@ It allows referencing another values from `user_parameters` referenced by `{"att
 }
 ```
 
-### Referencing parameters
+### Referencing Parameters
 
-All parameters defined here can be then referenced using the `{"attr":"PARAMETER_KEY"}` syntax. You may reference them
-in the following sections:
+Parameters defined in this section can be referenced using the `{"attr":"PARAMETER_KEY"}` syntax in:
 
-- in the `user_parameters` section itself.
+- `user_parameters` section itself.
 - [`api.default_query_parameters`](/extend/generic-writer/configuration/#default-query-parameters)
 - [`api.default_headers`](/extend/generic-writer/configuration/#default-headers)
 - [`request_parameters.headers`](/extend/generic-writer/configuration/#headers)
 - [`request_parameters.query parameters`](/extend/generic-writer/configuration/#query-parameters)
 
-See
-example [010](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/010-simple-json-user-parameters-various)
+See example [010](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/010-simple-json-user-parameters-various) for more details.
 
 ## Request Parameters
 
-Define parameters of the HTTP request sent.
+Define parameters for HTTP requests.
 
 ### Method
 
-Request method - POST, PUT, UPDATE, DELETE etc.
+Request method: POST, PUT, UPDATE, DELETE, etc.
 
 Supported methods: `['GET', 'POST', 'PATCH', 'UPDATE', 'PUT', 'DELETE']`
 
@@ -367,16 +584,16 @@ Supported methods: `['GET', 'POST', 'PATCH', 'UPDATE', 'PUT', 'DELETE']`
 ...
 ```
 
-### Endpoint path
+### Endpoint Path
 
-A relative path of the endpoint. The final request URL is `base_url` and `endpoint_path` combined.
+The relative path of the endpoint. The final request URL combines `base_url` and `endpoint_path`.
 
-e.g. when `base_url` is set to `https://example.com/api` and `endpoint_path` to `/customer` the resulting URL
-is `https://example.com/api/customer`
+**Example:**
+If `base_url` is `https://example.com/api` and `endpoint_path` is `/customer`, the resulting URL
+is: `https://example.com/api/customer`.
 
-**NOTE** That it is possible to change the `enpoint_path` dynamically
-using [iteration columns](/extend/generic-writer/configuration/#iterate-by-columns) e.g. `/orders/[[id]]` as seen
-in [example 005](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/005-json-iterations/)
+**Note:** The `enpoint_path` can be dynamically changed using [iteration columns](/extend/generic-writer/configuration/#iterate-by-columns); e.g., `/orders/[[id]]` as seen
+in [example 005](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/005-json-iterations/).
 
 ```json
 
@@ -388,9 +605,9 @@ in [example 005](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/s
 
 ### Headers
 
-Allows you to define default query parameters that are being sent with each request.
+Define default headers sent with each request.
 
-**NOTE** That you can reference parameters defined in `user_parameters` using the `{"attr":"SOME_KEY"}` syntax.
+**Note:** You can reference `user_parameters` using the `{"attr":"SOME_KEY"}` syntax.
 
 ```json
 "request_parameters": {
@@ -402,13 +619,13 @@ Allows you to define default query parameters that are being sent with each requ
 ...
 ```
 
-See [example 006](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/006-simple-json-custom-headers/)
+See [example 006](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/006-simple-json-custom-headers/).
 
-### Query parameters
+### Query Parameters
 
-Allows you to define default query parameters that are being sent with each request.
+Define default query parameters sent with each request.
 
-**NOTE** That you can reference parameters defined in `user_parameters` using the `{"attr":"SOME_KEY"}` syntax.
+**Note:** Parameters can reference `user_parameters` with the `{"attr":"SOME_KEY"}` syntax.
 
 ```json
 "request_parameters": {
@@ -423,27 +640,27 @@ Allows you to define default query parameters that are being sent with each requ
 }
 ```
 
-See [example 009](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/009-simple-json-request-parameters/)
+See [example 009](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/009-simple-json-request-parameters/).
 
 ## Request Content
 
-Defines how to process the input and how the sent content should look like.
+Defines how to process the input data and how the sent content should look.
 
 ### Content Type
 
-Defines how the input table is translated to a request:
+Specifies how the input table is translated into a request:
 
-- `JSON` - input table is converted into a JSON (see `json_mapping`) sent as `application/json` type.
-  See [example 001](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/001-simple-json/)
-- `JSON_URL_ENCODED` - input table is converted into a JSON and sent as `application/x-www-form-urlencoded`.
-  See [example 021](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/021-simple-json-url-encoded-form/)
-- `BINARY` - input table is sent as binary data (just like `curl --data-binary`).
-  See [example](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/tests/functional/binary_simple/)
-- `BINARY-GZ` - input is sent as gzipped binary data.
-  See [example](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/tests/functional/binary_gz/)
-- `EMPTY_REQUEST` - sends just empty requests. Usefull for triggerring webhooks, DELETE calls, etc. As many requests as
-  there are rows on the input are sent. Useful with `iterate_by_columns` enabled to trigger multiple endpoints.
-  See [example 022](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/022-empty-request-iterations-delete/)
+- `JSON`: The input table is converted into JSON (see `json_mapping`) and sent as `application/json`.
+  See [example 001](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/001-simple-json/).
+- `JSON_URL_ENCODED`: The input table is converted into JSON and sent as `application/x-www-form-urlencoded`.
+  See [example 021](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/021-simple-json-url-encoded-form/).
+- `BINARY`: The input table is sent as binary data, similar to `curl --data-binary`.
+  See [example](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/tests/functional/binary_simple/).
+- `BINARY-GZ`: The input is sent as gzipped binary data.
+  See [example](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/tests/functional/binary_gz/).
+- `EMPTY_REQUEST`: Sends empty requests. Useful for triggerring webhooks, DELETE calls, etc. As many requests as
+  there are rows in the input are sent. Useful with `iterate_by_columns` enabled to trigger multiple endpoints.
+  See [example 022](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/022-empty-request-iterations-delete/).
 
 ```json
 
@@ -454,13 +671,14 @@ Defines how the input table is translated to a request:
 
 ### JSON Mapping
 
-[REQUIRED for JSON based content type] This section defines the CSV 2 JSON conversion in case of JSON content type.
+[REQUIRED for JSON based content type] 
+This section defines the CSV-to-JSON conversion.
 
 #### Nesting delimiter
 
-A string that is used for nesting. e.g. `__`. This way you can define nested objects based on column names.
+Defines the string used for nesting JSON objects. You can define nested objects based on column names.
 
-e.g. When set to `__` a column value `address__streed` will be converted to `{"address"{"street":"COLUMN_VALUE"}}`
+For example, if set to `__`, a column named `address__streed` will be converted to `{"address"{"street":"COLUMN_VALUE"}}`.
 
 ```json
 "request_content": {
@@ -471,14 +689,15 @@ e.g. When set to `__` a column value `address__streed` will be converted to `{"a
 ```
 
 See
-example [008](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/008-simple-json-nested-object-delimiter/)
+example [008](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/008-simple-json-nested-object-delimiter/).
 
 #### Chunk size
 
-Defines how many rows are being sent in a single request. When set to `1` a single object is sent `{}` (
-see [example 002](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/002-simple-json-chunked-single/))
-, when set to >1 an array of objects is sent `[{}, {}]` (
-see [example 003](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/003-simple-json-chunked-multi/))
+Defines the number of rows sent in a single request. 
+- `1`: Sends each row as a single object, e.g., `{}` (
+see [example 002](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/002-simple-json-chunked-single/)).
+- `>1`: Sends rows as an array of objects, e.g., `[{}, {}]` (
+see [example 003](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/003-simple-json-chunked-multi/)).
 
 ```json
 "request_content": {
@@ -491,38 +710,38 @@ see [example 003](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/
 
 #### Column datatypes
 
-Optional configuration of column types. This version supports nesting (three levels) and three datatypes:
+Optional configuration for column types. This version supports three levels of nesting and three datatypes:
 
-- `bool` - Boolean value case-insensitive conversion: `t`, `true`, `yes`, `1`,`"1"` to `True` and `f`, `false`, `no`
-  to `False`
-- `string` - String
-- `number` - Number
-- `object` - Object - valid JSON array or JSON object, e.g. ["1","2"], {"key":"val"}
+- `bool`: Boolean values. Case-insensitive conversions: 
+    - `t`, `true`, `yes`, `1`,`"1"` -> `True` 
+    - `f`, `false`, `no` -> `False`
+- `string`: String values.
+- `number`: Numeric values.
+- `object`: Valid JSON arrays or JSON objects (e.g., ["1","2"], {"key":"val"}).
 
 ##### Autodetect
 
-Default value `true
-`
-Set this option to `true` to make the parser automatically detect the above datatypes. It may be used in combination
-with
-`datatype_override` option to force datatype to some columns.
+Set to `true` by default. Automatically detects column types unless overriden by `datatype_override`.
 
 ##### Column datatype override
 
 [OPTIONAL]
 
-The `autodetect` option in most cases takes care of the datatype conversion properly. But there are some scenarios where
-you want make sure that the datatype conversion is forced. E.g. for `phone_number` column to be treated as String a
-mapping should be defined as `"phone_number":"string"`.
+In most cases, the `autodetect` option handles datatype conversion correctly. However, there are scenarios where
+you may need to force the datatype conversion. For example, to ensure that the `phone_number` column is treated as a string, you can specify
+`"phone_number":"string"`.
 
-Below are options that can be used as a datatype values:
+**Available datatype options:*
 
-if you want the value to be always a string, use `string`, if you want the value to be numeric, use `number`. If you
-want it to be Boolean, use `bool`
-(case-insensitive conversion: `t`, `true`, `yes` to `True` and `f`, `false`, `no` to `False`)
-If the value should be an array or object `object` - valid JSON array or JSON object, e.g. ["1","2"], {"key":"val"}
+- `string`: Always interpret the value as a string.
+- `number`: Interpret the value as numeric.
+- `bool`: Interpret the value as a Boolean.
+  - Case-insensitive conversions: 
+    - `t`, `true`, `yes` -> `True` 
+    - `f`, `false`, `no` -> `False`
+- `object`: Interpret the value as a valid JSON array or object (e.g., ["1","2"], {"key":"val"}).
 
-**Note** If the `autodetect` option is turned off all unspecified column will be treated as a string.
+**Note:** If the `autodetect` option is turned off, all unspecified columns will default to `string`.
 
 ```json
 "request_content": {
@@ -549,13 +768,13 @@ If the value should be an array or object `object` - valid JSON array or JSON ob
 }
 ```
 
-See [example 007](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/007-simple-json-force-datatype/)
+See [example 007](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/007-simple-json-force-datatype/).
 
 #### Request Data Wrapper
 
 [OPTIONAL]
 
-A wrapper/mask of the parsed data. It needs to be json-encoded json. E.g
+A wrapper or mask can be applied to the parsed data, encoded as JSON. For example:
 
 ```json
 "request_content": {
@@ -567,7 +786,7 @@ A wrapper/mask of the parsed data. It needs to be json-encoded json. E.g
 ...
 ```
 
-Given a single column `user__id` and `chunksize` = 2, the above will cause each request being sent as:
+Given a single column `user__id` and `chunksize` = 2, the above will send requests like this:
 
 ```json
 {
@@ -587,20 +806,22 @@ Given a single column `user__id` and `chunksize` = 2, the above will cause each 
 ```
 
 See
-examples: [012](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/012-simple-json-request-data-wrapper/)
+example [012](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/012-simple-json-request-data-wrapper/).
 
 #### Column names override
 
-You may override specific column names using the `column_names_override` parameter to be able to generate fields with
+You can override specific column names using the `column_names_override` parameter, allowing you to generate fields with
 characters not supported in Storage column names.
 
-**NOTE** that this is applied **after** the column type definition, so refer to original name in the `column_types`
-config.
+**Notes:** 
+- This is applied **after** column type definitions, so refer to the original name in the `column_types`
+configuration.
+- Nested objects renaming is supported. The rename applies to the leaf node.
 
-**NOTE2** It is possible to rename nested objects as well. The rename is applied to the leaf node.
-E.g. `"address___city":"city.address"`
-with delimiter set to `___` will result in `{"address":{"city.address":"SOME_VALUE"}}`.
-See [example 23](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/023-simple-json-nested-object-rename-column/)
+Example: 
+Given the configuration `"address___city":"city.address"`, with a delimiter set to `___`, the result would be: `{"address":{"city.address":"SOME_VALUE"}}`.
+
+See [example 23](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/023-simple-json-nested-object-rename-column/).
 
 **Example:**
 
@@ -617,15 +838,14 @@ See [example 23](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/s
 ...
 ```
 
-For more details refer to
-examples: [20](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/020-simple-json-column-name-override/)
-and [23](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/023-simple-json-nested-object-rename-column/)
+For more examples, see:
+[example 20](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/020-simple-json-column-name-override/)
+and [example 23](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/023-simple-json-nested-object-rename-column/).
 
 ### Iterate By Columns
 
-This parameter allows performing the requests in iterations based on provided parameters within data. The user specifies
-columns in the source table that will be used as parameters for each request. The column values may be then used instead
-of placeholders within the `request_options`. The input table is iterated row by row, e.g. 1 row = 1 request.
+This parameter allows requests to be performed iteratively based on data from specific columns in the source table. These column values can be used as
+placeholders within `request_options`. The input table is processed row by row (1 row = 1 request).
 
 ```json
 "request_content": {
@@ -637,12 +857,12 @@ of placeholders within the `request_options`. The input table is iterated row by
 
 ```
 
-These will be injected in:
+These values will be injected into:
 
-- `request_parameters.endpoint_path` if placeholder is specified, e.g.  `/user/[[id]]`
-- `user_parameters` section, any existing parameters with a same name will be replaced by the value from the data. This
-  allows for example for changing request parameters dynamically `www.example.com/api/user?date=xx` where the `date`
-  value is specified like:
+- `request_parameters.endpoint_path` (if a placeholder like `/user/[[id]]` is used).
+- `user_parameters` (replacing parameters with matching names). This
+  allows for dynamically changing request parameters, such as `www.example.com/api/user?date=xx`, where the `date`
+  value is specified as follows:
 
 ```json
 
@@ -660,28 +880,23 @@ These will be injected in:
 
 ```
 
-**NOTE** The iteration columns may be specified for requests of any content type. The `chunk_size` parameter in JSON
-mapping is overridden to `1`.
+**Note:** When `iterate_by_columns` is enabled, the `chunk_size` in JSON mapping is overridden to `1`.
 
-See the example configurations:
+**Example configurations:**
 
-- [ex. 005](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/005-json-iterations/)
-- Empty request with
-  iterations [ex. 004](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/004-empty-request-iterations/)
-  ,
-  [ex. 22](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/022-empty-request-iterations-delete/)
-- [ex. 011 placeholders in query parameters](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/011-simple-json-user-parameters-from-iterations/)
+- [Example 005](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/005-json-iterations/)
+- Empty request with iterations [example 004](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/004-empty-request-iterations/),
+  [example 22](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/022-empty-request-iterations-delete/)
+- [Example 011: placeholders in query parameters](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/docs/examples/011-simple-json-user-parameters-from-iterations/)
 
-##### Example
-
-Let's have this table on the input:
+##### Example Input Table
 
 | id | date       | name  | email      | address |
 |----|------------|-------|------------|---------|
 | 1  | 01.01.2020 | David | d@test.com | asd     |
 | 2  | 01.02.2020 | Tom   | t@test.com | asd     |
 
-Consider following request options:
+Consider the following request options:
 
 ```json
 "request_parameters": {
@@ -705,35 +920,34 @@ Consider following request options:
 
 The writer will run in two iterations:
 
-**FIRST** With data
+**First request:**
 
 | name  | email      | address |
 |-------|------------|---------|
 | David | d@test.com | asd     |
 
-Sent to `www.example.com/api/user/1?date=01.01.2020`
+Sent to `www.example.com/api/user/1?date=01.01.2020`.
 
-**SECOND** with data
+**Second request:** 
 
 | name  | email      | address |
 |-------|------------|---------|
 | Tom   | t@test.com | asd     |
 
-Sent to `www.example.com/api/user/2?date=01.02.2020`
+Sent to `www.example.com/api/user/2?date=01.02.2020`.
 
 ## Dynamic Functions
 
-The application support functions that may be applied on parameters in the configuration to get dynamic values.
+This application supports dynamic functions that can be applied to parameters in the configuration for generating values dynamically.
 
-Currently these functions work only in the `user_parameters` scope. Place the required function object instead of the
+Currently, functions only work within the `user_parameters` scope. Place the required function object instead of the
 user parameter value.
 
-The function values may refer to another user params using `{"attr": "custom_par"}`
+Function values can refer to other user parameters using the syntax: `{"attr": "custom_par"}`.
 
-**NOTE:** If you are missing any function let us know or place a PR to
+**Note:** If you require additional functions, let us know or submit a pull request to
 our [repository](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/). It's as simple as adding an
-arbitrary method into
-the [UserFunctions class](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/src/user_functions.py#lines-7)
+arbitrary method to the [UserFunctions class](https://bitbucket.org/kds_consulting_team/kds-team.wr-generic/src/master/src/user_functions.py#lines-7).
 
 **Function object**
 
@@ -775,17 +989,18 @@ Nesting of functions is supported:
 
 #### string_to_date
 
-Function converting string value into a datestring in specified format. The value may be either date in `YYYY-MM-DD`
-format, or a relative period e.g. `5 hours ago`, `yesterday`,`3 days ago`, `4 months ago`, `2 years ago`, `today`.
+This function converts a string into a formatted date string. The input can be:
+- A specific date in the `YYYY-MM-DD` format (e.g., `2024-01-01`). 
+- A relative period (e.g., `5 hours ago`, `yesterday`,`3 days ago`, `4 months ago`, `2 years ago`, `today`).
 
-The result is returned as a date string in the specified format, by default `%Y-%m-%d`
+The result is returned as a date string in the specified format (default: `%Y-%m-%d`).
 
 The function takes two arguments:
 
-1. [REQ] Date string
-2. [OPT] result date format. The format should be defined as in http://strftime.org/
+1. [REQUIRED] Date string
+2. [OPTIONAL] Desired date format (defined as in http://strftime.org/)
 
-**Example**
+**Example:**
 
 ```json
 {
@@ -802,7 +1017,7 @@ The function takes two arguments:
 ```
 
 The above value is then available in [supported contexts](/extend/generic-writer/configuration/#referencing-parameters)
-as:
+as follows:
 
 ```json
 "to_date": {"attr": "yesterday_date"}
@@ -810,11 +1025,9 @@ as:
 
 #### concat
 
-Concatenate an array of strings.
+The function accepts an array of strings as its argument and concatenates them into one.
 
-The function takes an array of strings to concatenate as an argument
-
-**Example**
+**Example:**
 
 ```json
 {
@@ -830,7 +1043,7 @@ The function takes an array of strings to concatenate as an argument
 }
 ```
 
-The above value is then available in supported contexts as:
+The resulting value is then available in supported contexts as follows:
 
 ```json
 "url": {"attr": "url"}
@@ -838,9 +1051,9 @@ The above value is then available in supported contexts as:
 
 #### base64_encode
 
-Encodes string in BASE64
+Encodes a string in BASE64 format.
 
-**Example**
+**Example:**
 
 ```json
 {
@@ -855,7 +1068,7 @@ Encodes string in BASE64
 }
 ```
 
-The above value is then available in contexts as:
+The resulting value is then available in contexts as follows:
 
 ```json
 "token": {"attr": "token"}
@@ -863,8 +1076,7 @@ The above value is then available in contexts as:
 
 ## Development
 
-If required, change local data folder (the `CUSTOM_FOLDER` placeholder) path to your custom path in the docker-compose
-file:
+To customize the local data folder path, replace the `CUSTOM_FOLDER` placeholder with your desired path in the docker-compose.yml file:
 
 ```yaml
     volumes:
@@ -872,7 +1084,7 @@ file:
       - ./CUSTOM_FOLDER:/data
 ```
 
-Clone this repository, init the workspace and run the component with following command:
+Clone this repository, initialize the workspace, and run the component using the following commands:
 
 ```
 git clone repo_path my-new-component
@@ -881,7 +1093,7 @@ docker-compose build
 docker-compose run --rm dev
 ```
 
-Run the test suite and lint check using this command:
+Run the test suite and perform lint checks using this command:
 
 ```
 docker-compose run --rm test
@@ -889,5 +1101,5 @@ docker-compose run --rm test
 
 # Integration
 
-For information about deployment and integration with KBC, please refer to
-the [deployment section of developers documentation](https://developers.keboola.com/extend/component/deployment/) 
+For details about deployment and integration with Keboola, refer to
+the [deployment section of the developer documentation](https://developers.keboola.com/extend/component/deployment/). 

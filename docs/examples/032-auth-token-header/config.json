@@ -1,0 +1,40 @@
+{
+  "parameters": {
+    "api": {
+      "base_url": "http://mock-server:80",
+      "authentication": {
+        "type": "ApiKey",
+        "parameters": {
+          "#token": {"attr":"#__password"},
+          "key": "token",
+          "position": "headers"
+        }
+      }
+    },
+    "user_parameters": {
+      "#__password": "XXXX"
+    },
+    "request_parameters": {
+      "method": "POST",
+      "endpoint_path": "/032-auth-token-header/orders",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "query_parameters": {}
+    },
+    "request_content": {
+      "content_type": "JSON",
+      "json_mapping": {
+        "nesting_delimiter": "__",
+        "chunk_size": 2,
+        "column_data_types": {
+          "autodetect": true,
+          "datatype_override": []
+        },
+        "request_data_wrapper": "",
+        "column_names_override": {}
+      },
+      "iterate_by_columns": []
+    }
+  }
+}
