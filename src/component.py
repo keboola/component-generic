@@ -159,14 +159,32 @@ class Component(ComponentBase):
             # build additional parameters
             query_parameters = {**api_cfg.default_query_parameters.copy(), **request_cfg.query_parameters.copy()}
             query_parameters = ConfigHelpers().fill_in_user_parameters(query_parameters, user_params)
-            ssl_verify = api_cfg.ssl_verification
             timeout = api_cfg.timeout
-            # additional_params = self._build_request_parameters(additional_params_cfg)
+
+            # SSL verification parameters
+            # if user provided CA certificate or client certificate & key, those will be written to a temp file and used
+            if not api_cfg.ca_cert:
+                ca_cert_file = ""
+            else:
+                with tempfile.NamedTemporaryFile("w", delete=False) as cafp:
+                    ca_cert_file = cafp.name
+                    cafp.write(api_cfg.ca_cert)
+
+            if not api_cfg.client_cert_key:
+                client_cert_key_file = ""
+            else:
+                with tempfile.NamedTemporaryFile("w", delete=False) as ccfp:
+                    client_cert_key_file = ccfp.name
+                    ccfp.write(api_cfg.client_cert_key)
+
+            verify = ca_cert_file if ca_cert_file else api_cfg.ssl_verification
+
             request_parameters = {
                 "params": query_parameters,
                 "headers": new_headers,
-                "verify": ssl_verify,
                 "timeout": timeout,
+                "verify": verify,
+                "cert": client_cert_key_file,
             }
 
             endpoint_path = request_cfg.endpoint_path

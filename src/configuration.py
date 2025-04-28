@@ -51,8 +51,10 @@ class ApiConfig(SubscriptableDataclass):
     default_headers: dict = field(default_factory=dict)
     authentication: Authentication = None
     retry_config: RetryConfig = field(default_factory=RetryConfig)
-    ssl_verification: bool = True
     timeout: float = None
+    ssl_verification: bool = True  # toggles requests.[method](verify=True/False)
+    ca_cert: str = ""  # if provided, this value will be written to a temp file and used instead of ssl_verify
+    client_cert_key: str = ""  # client certificate bundled with private key (will also be written to a temp file)
 
 
 @dataclass
@@ -328,6 +330,15 @@ def build_configuration(configuration_parameters: dict) -> WriterConfiguration:
     user_parameters = configuration_parameters["user_parameters"] or {}
     request_parameters = configuration_parameters["request_parameters"]
     request_content = configuration_parameters["request_content"]
+
+    # rename camelCase config keys to use pythonic snake_case
+    # keeping the original keys for consistency with PHP generic extractor
+    # - caCertificate -> ca_cert
+    # - #clientCertificate -> client_cert_key
+    if ca_cert := api_config_pars.pop("caCertificate", None):
+        api_config_pars["ca_cert"] = ca_cert.strip()
+    if client_cert_key := api_config_pars.pop("#clientCertificate", None):
+        api_config_pars["client_cert_key"] = client_cert_key.strip()
 
     api_config: ApiConfig = build_dataclass_from_dict(ApiConfig, api_config_pars)
     if api_config_pars.get("authentication"):
