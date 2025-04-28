@@ -7,14 +7,15 @@ from csv2json.hone_csv2json import Csv2JsonConverter
 
 
 class JsonConverter:
-
-    def __init__(self, nesting_delimiter: str = '__',
-                 chunk_size: Optional[int] = None,
-                 infer_data_types=True,
-                 column_data_types: Optional[List[Dict[str, str]]] = None,
-                 column_name_override: Optional[dict] = None,
-                 data_wrapper: Optional[str] = None):
-
+    def __init__(
+        self,
+        nesting_delimiter: str = "__",
+        chunk_size: Optional[int] = None,
+        infer_data_types=True,
+        column_data_types: Optional[List[Dict[str, str]]] = None,
+        column_name_override: Optional[dict] = None,
+        data_wrapper: Optional[str] = None,
+    ):
         self.nesting_delimiter = nesting_delimiter
         self.chunk_size = chunk_size or sys.maxsize
         self.infer_data_types = infer_data_types
@@ -29,19 +30,21 @@ class JsonConverter:
         row = next(reader, None)
 
         if not row:
-            logging.warning('The file is empty!')
+            logging.warning("The file is empty!")
 
         while row:  # outer loop, create chunks
             continue_it = True
             i = 0
-            json_string = '[' if self.chunk_size > 1 else ''
+            json_string = "[" if self.chunk_size > 1 else ""
             while continue_it:
                 i += 1
-                result = converter.convert_row(row=row,
-                                               coltypes=self.column_data_types,
-                                               delimit=self.nesting_delimiter,
-                                               colname_override=self.column_name_override,
-                                               infer_undefined=self.infer_data_types)
+                result = converter.convert_row(
+                    row=row,
+                    coltypes=self.column_data_types,
+                    delimit=self.nesting_delimiter,
+                    colname_override=self.column_name_override,
+                    infer_undefined=self.infer_data_types,
+                )
 
                 json_string += json.dumps(result[0])
                 row = next(reader, None)
@@ -50,9 +53,9 @@ class JsonConverter:
                     continue_it = False
 
                 if continue_it:
-                    json_string += ','
+                    json_string += ","
 
-            json_string += ']' if self.chunk_size > 1 else ''
+            json_string += "]" if self.chunk_size > 1 else ""
             data = json.loads(json_string)
             data = self._wrap_json_payload(data)
             yield data
@@ -61,6 +64,6 @@ class JsonConverter:
         if not self.data_wrapper:
             return data
         # backward compatibility
-        res = self.data_wrapper.replace('{{data}}', json.dumps(data))
-        res = res.replace('[[data]]', json.dumps(data))
+        res = self.data_wrapper.replace("{{data}}", json.dumps(data))
+        res = res.replace("[[data]]", json.dumps(data))
         return json.loads(res)

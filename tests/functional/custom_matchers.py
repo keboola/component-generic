@@ -14,11 +14,7 @@ def query_param_matcher(params):
 
     def match(request):
         request_params = request.params
-        valid = (
-            params is None
-            if request_params is None
-            else sorted(params.items()) == sorted(request_params.items())
-        )
+        valid = params is None if request_params is None else sorted(params.items()) == sorted(request_params.items())
 
         if not valid:
             return False, "%s doesn't match %s" % (
@@ -39,7 +35,7 @@ def binary_payload_matcher(params):
     """
 
     def _compare_files(path1, path2):
-        with open(path1, 'r') as in1, open(path2, 'r') as in2:
+        with open(path1, "r") as in1, open(path2, "r") as in2:
             body1 = in1.read()
             body2 = in2.read()
         errors = difflib.context_diff(body1, body2)  # set the compare output to a variable
@@ -52,7 +48,7 @@ def binary_payload_matcher(params):
         valid = False
         try:
             if isinstance(request_body, BufferedReader):
-                with open(result, 'wb+') as out:
+                with open(result, "wb+") as out:
                     for chunk in request_body:
                         out.write(chunk)
                 valid = _compare_files(result, params)
@@ -78,7 +74,7 @@ def binary_gz_payload_matcher(params):
     """
 
     def _compare_files(decompressed_result, path2):
-        with open(path2, 'r') as inp:
+        with open(path2, "r") as inp:
             body2 = inp.read()
         errors = difflib.context_diff(decompressed_result, body2)  # set the compare output to a variable
 
@@ -90,12 +86,12 @@ def binary_gz_payload_matcher(params):
         valid = False
         try:
             if isinstance(request_body, BufferedReader):
-                with open(result, 'wb+') as out:
+                with open(result, "wb+") as out:
                     for chunk in request_body:
                         out.write(chunk)
-                with open(result, 'rb') as gz:
+                with open(result, "rb") as gz:
                     decompressed = gzip.decompress(gz.read())
-                valid = _compare_files(decompressed.decode('utf-8'), params)
+                valid = _compare_files(decompressed.decode("utf-8"), params)
             # compare
             if not valid:
                 return False, "The binary files do not match!"
@@ -118,7 +114,7 @@ def binary_payload_multi_matcher_to_string(strings_to_match):
     """
 
     def _compare_files(decompressed_result, path2):
-        with open(path2, 'r') as inp:
+        with open(path2, "r") as inp:
             body2 = inp.read()
         errors = difflib.context_diff(decompressed_result, body2)  # set the compare output to a variable
 
@@ -131,15 +127,14 @@ def binary_payload_multi_matcher_to_string(strings_to_match):
         errors = ""
         try:
             if isinstance(request_body, (BufferedReader, BytesIO)):
-                with open(result, 'wb+') as out:
+                with open(result, "wb+") as out:
                     for chunk in request_body:
                         out.write(chunk)
-                valid, errors = _compare_files(strings_to_match[request.url.split('?')[0]], result)
+                valid, errors = _compare_files(strings_to_match[request.url.split("?")[0]], result)
                 os.remove(result)
             # compare
             if not valid:
-                return False, f"The binary files do not match. " \
-                              f"{errors}! "
+                return False, f"The binary files do not match. {errors}! "
 
             return valid, ""
         except Exception as e:
