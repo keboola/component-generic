@@ -35,7 +35,7 @@ def binary_payload_matcher(params):
     """
 
     def _compare_files(path1, path2):
-        with open(path1, "r") as in1, open(path2, "r") as in2:
+        with open(path1) as in1, open(path2) as in2:
             body1 = in1.read()
             body2 = in2.read()
         errors = difflib.context_diff(body1, body2)  # set the compare output to a variable
@@ -43,13 +43,14 @@ def binary_payload_matcher(params):
         return len(list(errors)) == 0
 
     def match(request):
-        request_body = request.body
-        result = tempfile.mktemp()
+        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+            result = tmpfile.name
+
         valid = False
         try:
-            if isinstance(request_body, BufferedReader):
+            if isinstance(request.body, BufferedReader):
                 with open(result, "wb+") as out:
-                    for chunk in request_body:
+                    for chunk in request.body:
                         out.write(chunk)
                 valid = _compare_files(result, params)
             # compare
@@ -60,7 +61,8 @@ def binary_payload_matcher(params):
         except Exception as e:
             return False, f"Cannot parse request.content. {e}"
         finally:
-            request_body.close()
+            if isinstance(request.body, BufferedReader):
+                request.body.close()
             os.remove(result)
 
     return match
@@ -81,13 +83,14 @@ def binary_gz_payload_matcher(params):
         return len(list(errors)) == 0
 
     def match(request):
-        request_body = request.body
-        result = tempfile.mktemp()
+        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+            result = tmpfile.name
+
         valid = False
         try:
-            if isinstance(request_body, BufferedReader):
+            if isinstance(request.body, BufferedReader):
                 with open(result, "wb+") as out:
-                    for chunk in request_body:
+                    for chunk in request.body:
                         out.write(chunk)
                 with open(result, "rb") as gz:
                     decompressed = gzip.decompress(gz.read())
@@ -100,7 +103,8 @@ def binary_gz_payload_matcher(params):
         except Exception as e:
             return False, f"Cannot parse request.content. {e}"
         finally:
-            request_body.close()
+            if isinstance(request.body, BufferedReader):
+                request.body.close()
             os.remove(result)
 
     return match
@@ -121,14 +125,15 @@ def binary_payload_multi_matcher_to_string(strings_to_match):
         return len(list(errors)) == 0, f"Expected content: {decompressed_result}; vs. received: {body2} "
 
     def match(request):
-        request_body = request.body
-        result = tempfile.mktemp()
+        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+            result = tmpfile.name
+
         valid = False
         errors = ""
         try:
-            if isinstance(request_body, (BufferedReader, BytesIO)):
+            if isinstance(request.body, (BufferedReader, BytesIO)):
                 with open(result, "wb+") as out:
-                    for chunk in request_body:
+                    for chunk in request.body:
                         out.write(chunk)
                 valid, errors = _compare_files(strings_to_match[request.url.split("?")[0]], result)
                 os.remove(result)
@@ -140,6 +145,7 @@ def binary_payload_multi_matcher_to_string(strings_to_match):
         except Exception as e:
             return False, f"Cannot parse request.content. {e}"
         finally:
-            request_body.close()
+            if isinstance(request.body, (BufferedReader, BytesIO)):
+                request.body.close()
 
     return match
