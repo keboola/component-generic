@@ -1,4 +1,4 @@
-keboola.component==1.4.2
+keboola.component
 keboola.http_client
 keboola.utils
 requests
