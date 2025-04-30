@@ -1,4 +1,3 @@
-version: "2.4"
 services:
   # for development purposes
   dev:
@@ -8,6 +7,7 @@ services:
         - ./data:/data
     environment:
       - KBC_DATADIR=./data
+
   test:
     # Use to run flake8 and unittests checks
     build: .
@@ -23,6 +23,7 @@ services:
       - mock-server
     depends_on:
       - mock-server
+
   functional-tests:
     # Run examples against mock server
     build: .
@@ -32,6 +33,7 @@ services:
     command: python /code/docs/examples/run_examples.py
     links:
       - mock-server
+
   mock-server:
     container_name: mock-server
     image: quay.io/keboola/ex-generic-mock-server

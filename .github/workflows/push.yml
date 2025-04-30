@@ -25,9 +25,24 @@ env:
   KBC_STORAGE_TOKEN: ${{ secrets.KBC_STORAGE_TOKEN }} # required for running KBC tests
 
 jobs:
+  tests-compose:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Docker Compose Tests
+        run: |
+          cd ${{ github.workspace }}
+          docker compose up test
+          docker compose up functional-tests
+
   push_event_info:
     name: Push Event Info
     runs-on: ubuntu-latest
+    needs:
+      - tests-compose
     outputs:
       app_image_tag: ${{ steps.tag.outputs.app_image_tag }}
       is_semantic_tag: ${{ steps.tag.outputs.is_semantic_tag }}
@@ -109,35 +124,6 @@ jobs:
           name: ${{ env.KBC_DEVELOPERPORTAL_APP }}
           path: /tmp/${{ env.KBC_DEVELOPERPORTAL_APP }}.tar
 
-  tests:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    needs:
-      - push_event_info
-      - build
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.KBC_DEVELOPERPORTAL_APP }}
-          path: /tmp
-
-      - name: Load Image & Run Tests
-        run: |
-          docker load --input /tmp/${{ env.KBC_DEVELOPERPORTAL_APP }}.tar
-          docker image ls -a
-
-      - name: Run Tests with Docker Compose
-        run: |
-          cd ${{ github.workspace }}
-          docker compose up test
-
   tests-kbc:
     name: Run KBC Tests
     needs:
@@ -164,7 +150,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - push_event_info
-      - tests
       - tests-kbc
     env:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -178,7 +163,7 @@ jobs:
           name: ${{ env.KBC_DEVELOPERPORTAL_APP }}
           path: /tmp
 
-      - name: Load Image & Run Tests
+      - name: Load Image
         run: |
           docker load --input /tmp/${{ env.KBC_DEVELOPERPORTAL_APP }}.tar
           docker image ls -a
@@ -204,7 +189,6 @@ jobs:
       KBC_DEVELOPERPORTAL_PASSWORD: ${{ secrets.KBC_DEVELOPERPORTAL_PASSWORD }}
     needs:
       - push_event_info
-      - build
       - push
     if: needs.push_event_info.outputs.is_deploy_ready == 'true'
     runs-on: ubuntu-latest
@@ -224,7 +208,6 @@ jobs:
       KBC_DEVELOPERPORTAL_PASSWORD: ${{ secrets.KBC_DEVELOPERPORTAL_PASSWORD }}
     needs:
       - push_event_info
-      - build
       - push
     runs-on: ubuntu-latest
     if: needs.push_event_info.outputs.is_deploy_ready == 'true'
