@@ -116,6 +116,9 @@ jobs:
       - push_event_info
       - build
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -129,9 +132,11 @@ jobs:
         run: |
           docker load --input /tmp/${{ env.KBC_DEVELOPERPORTAL_APP }}.tar
           docker image ls -a
-          docker run ${{ env.KBC_DEVELOPERPORTAL_APP }}:latest flake8 . --config=flake8.cfg
-          echo "Running unit-tests..."
-          docker run ${{ env.KBC_DEVELOPERPORTAL_APP }}:latest python -m unittest discover
+
+      - name: Run Tests with Docker Compose
+        run: |
+          cd ${{ github.workspace }}
+          docker compose up test
 
   tests-kbc:
     name: Run KBC Tests

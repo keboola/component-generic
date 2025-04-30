@@ -49,36 +49,36 @@ class TestConfiguration(unittest.TestCase):
         auth_method = AuthMethodBuilder.build(writer_conf, **params)
         self.assertEqual(expected, auth_method)
 
-    # def test_client_credentials_basic(self):
-    #     auth = OAuth20ClientCredentials(
-    #         login_endpoint="http://mock-server:80/035-oauth_basic/login",
-    #         client_id="clientId",
-    #         client_secret="clientSecret",
-    #         api_request_headers={"X-ApiToken": {"response": "access_token"}},
-    #     )
-    #     auth.login()
-    #     self.assertEqual(auth.api_request_headers, {"X-ApiToken": "mkoijn098uhbygv"})
+    def test_client_credentials_basic(self):
+        auth = OAuth20ClientCredentials(
+            login_endpoint="http://mock-server:80/035-oauth_basic/login",
+            client_id="clientId",
+            client_secret="clientSecret",
+            api_request_headers={"X-ApiToken": {"response": "access_token"}},
+        )
+        auth.login()
+        self.assertEqual(auth.api_request_headers, {"X-ApiToken": "mkoijn098uhbygv"})
 
-    # def test_client_credentials_json(self):
-    #     auth = OAuth20ClientCredentials(
-    #         method="POST",
-    #         auth_type="client_secret_post_json",
-    #         login_endpoint="http://mock-server:80/036-oauth_post_json/login",
-    #         client_id="clientId",
-    #         client_secret="clientSecret",
-    #         api_request_headers={"X-ApiToken": {"response": "access_token"}},
-    #     )
-    #     auth.login()
-    #     self.assertEqual(auth.api_request_headers, {"X-ApiToken": "mkoijn098uhbygv"})
+    def test_client_credentials_json(self):
+        auth = OAuth20ClientCredentials(
+            method="POST",
+            auth_type="client_secret_post_json",
+            login_endpoint="http://mock-server:80/036-oauth_post_json/login",
+            client_id="clientId",
+            client_secret="clientSecret",
+            api_request_headers={"X-ApiToken": {"response": "access_token"}},
+        )
+        auth.login()
+        self.assertEqual(auth.api_request_headers, {"X-ApiToken": "mkoijn098uhbygv"})
 
-    # def test_client_credentials_form(self):
-    #     auth = OAuth20ClientCredentials(
-    #         method="GET",
-    #         auth_type="client_secret_post_form",
-    #         login_endpoint="http://mock-server:80/037-oauth_post_form/login",
-    #         client_id="id",
-    #         client_secret="sec",
-    #         api_request_headers={"X-ApiToken": {"response": "access_token"}},
-    #     )
-    #     auth.login()
-    #     self.assertEqual(auth.api_request_headers, {"X-ApiToken": "mkoijn098uhbygv"})
+    def test_client_credentials_form(self):
+        auth = OAuth20ClientCredentials(
+            method="GET",
+            auth_type="client_secret_post_form",
+            login_endpoint="http://mock-server:80/037-oauth_post_form/login",
+            client_id="id",
+            client_secret="sec",
+            api_request_headers={"X-ApiToken": {"response": "access_token"}},
+        )
+        auth.login()
+        self.assertEqual(auth.api_request_headers, {"X-ApiToken": "mkoijn098uhbygv"})
