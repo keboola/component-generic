@@ -26,8 +26,11 @@ env:
 
 jobs:
   tests-compose:
-    name: Run Tests
+    name: Run ${{ matrix.service }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [test, functional-tests]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -35,8 +38,7 @@ jobs:
       - name: Run Docker Compose Tests
         run: |
           cd ${{ github.workspace }}
-          docker compose up test
-          docker compose up functional-tests
+          docker compose up ${{ matrix.service }}
 
   push_event_info:
     name: Push Event Info
