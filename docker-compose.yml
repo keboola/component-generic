@@ -16,9 +16,14 @@ services:
       - ./data:/data
     environment:
       - KBC_DATADIR=./data
-    command:
-      - /bin/sh
-      - /code/scripts/build_n_test.sh
+    command: >
+      sh -c "
+      echo 'Running flake8...' &&
+      uv run flake8 --config=flake8.cfg &&
+      echo 'Running unit tests...' &&
+      uv run python -m unittest discover
+      "
+
     links:
       - mock-server
     depends_on:
@@ -30,7 +35,7 @@ services:
     volumes:
       - ./:/code
       - ./data:/data
-    command: python /code/docs/examples/run_examples.py
+    command: uv run python /code/docs/examples/run_examples.py
     links:
       - mock-server
 
