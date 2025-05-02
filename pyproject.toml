@@ -1,0 +1,25 @@
+[project]
+name = "component-generic"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "csv2json",
+    "keboola-component>=1.6.10",
+    "keboola-http-client>=1.0.1",
+    "keboola-utils>=1.1.0",
+    "nested-lookup>=0.2.25",
+    "requests>=2.32.3",
+]
+
+[dependency-groups]
+dev = [
+    "flake8>=7.2.0",
+    "freezegun>=1.5.1",
+    "mock>=5.2.0",
+    "responses==0.25.3",
+]
+
+[tool.uv.sources]
+csv2json = { url = "https://github.com/keboola/processor-csv-to-json/archive/refs/tags/0.5.8.zip" }

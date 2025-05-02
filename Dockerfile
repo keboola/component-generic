@@ -1,17 +1,17 @@
-FROM python:3.10-slim
-ENV PYTHONIOENCODING utf-8
-
-COPY . /code/
-
-# install gcc to be able to build packages - e.g. required by regex, dateparser, also required for pandas
-RUN apt-get update && apt-get install -y build-essential
-
-RUN pip install flake8
-
-RUN pip install -r /code/requirements.txt
-RUN pip install -r /code/tests-requirements.txt
+FROM python:3.13-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /code/
 
+COPY pyproject.toml .
+COPY uv.lock .
 
-CMD ["python", "-u", "/code/src/component.py"]
+RUN uv sync --all-groups
+
+COPY component_config/ component_config
+COPY src/ src
+COPY tests/ tests
+COPY flake8.cfg .
+COPY deploy.sh .
+
+CMD ["uv", "run", "python", "-u", "/code/src/component.py"]
