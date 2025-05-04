@@ -1,1 +1,1 @@
-Send data to REST like APIs either as JSON or a BINARY payload.
+Send data to REST-like APIs as either JSON or a binary payload.
