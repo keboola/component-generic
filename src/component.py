@@ -201,6 +201,7 @@ class Component(ComponentBase):
                     # if no iterations
                     in_stream = open(in_table.full_path, mode="rt", encoding="utf-8")
                 self.send_json_data(in_stream, endpoint_path, request_parameters, log=not has_iterations)
+                in_stream.close()
 
             elif content_cfg.content_type == "EMPTY_REQUEST":
                 # send empty request
@@ -213,6 +214,7 @@ class Component(ComponentBase):
                     # in case of iteration mode
                     in_stream = io.BytesIO(bytes(in_stream.getvalue(), "utf-8"))
                 self.send_binary_data(endpoint_path, request_parameters, in_stream)
+                in_stream.close()
 
         logging.info("Writer finished")
 
