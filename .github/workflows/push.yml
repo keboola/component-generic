@@ -1,10 +1,8 @@
 name: Keboola Component Build & Deploy Pipeline
 on:
   push:
-    branches:
-      - 'feature/*'
-      - 'bug/*'
-      - 'SUPPORT-*'
+    branches-ignore:
+      - main
     tags:
       - '*' # Skip the workflow on the main branch without tags
 
