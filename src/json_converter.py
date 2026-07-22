@@ -4,6 +4,7 @@ import sys
 from typing import List, Dict, Optional, Generator
 
 from csv2json.hone_csv2json import Csv2JsonConverter
+from keboola.component import UserException
 
 
 class JsonConverter:
@@ -66,4 +67,12 @@ class JsonConverter:
         # backward compatibility
         res = self.data_wrapper.replace("{{data}}", json.dumps(data))
         res = res.replace("[[data]]", json.dumps(data))
-        return json.loads(res)
+        try:
+            return json.loads(res)
+        except json.JSONDecodeError as e:
+            raise UserException(
+                "The configured 'request_data_wrapper' does not produce valid JSON after the data "
+                f"placeholder is substituted (parse error: {e}). Please check that "
+                "'request_data_wrapper' is a valid JSON template containing the {{data}} "
+                "or [[data]] placeholder."
+            ) from e
