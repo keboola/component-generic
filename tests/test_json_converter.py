@@ -25,6 +25,11 @@ class TestJsonConverterDataWrapper(unittest.TestCase):
         converter = JsonConverter(data_wrapper='{"root": {{data}}}')
         self.assertEqual({"root": [{"a": 1}]}, converter._wrap_json_payload([{"a": 1}]))
 
+    def test_valid_legacy_wrapper_still_wraps_payload(self):
+        # backward compatibility: the legacy [[data]] placeholder must keep working
+        converter = JsonConverter(data_wrapper='{"root": [[data]]}')
+        self.assertEqual({"root": [{"a": 1}]}, converter._wrap_json_payload([{"a": 1}]))
+
     def test_valid_wrapper_convert_stream(self):
         converter = JsonConverter(data_wrapper='{"root": {{data}}}')
         chunks = list(converter.convert_stream(self._reader("id,name\n1,keboola\n")))

@@ -73,5 +73,6 @@ class JsonConverter:
             raise UserException(
                 "The configured 'request_data_wrapper' does not produce valid JSON after the data "
                 f"placeholder is substituted (parse error: {e}). Please check that "
-                "'request_data_wrapper' is a valid JSON template containing the {{data}} placeholder."
+                "'request_data_wrapper' is a valid JSON template containing the {{data}} "
+                "or [[data]] placeholder."
             ) from e
