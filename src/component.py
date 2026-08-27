@@ -72,6 +72,18 @@ class Component(ComponentBase):
         except ValidationError as e:
             raise UserException(e) from e
 
+        # `base_url` is consumed both when building the auth method (Login / OAuth20ClientCredentials
+        # join it with the login endpoint) and when constructing the client, so validate it up front.
+        base_url = self._configuration.api.base_url
+        if not isinstance(base_url, str):
+            raise UserException(
+                "The 'api.base_url' parameter must be a URL string, but a value of type "
+                f"'{type(base_url).__name__}' was given. Please set it to a plain URL string, "
+                'e.g. "https://example.com". Note that dynamic references such as '
+                '{"attr": "some_user_parameter"} and function objects are not evaluated in '
+                "'base_url'."
+            )
+
         # build authentication method
         auth_method = None
         authentication = self._configuration.api.authentication
@@ -88,15 +100,6 @@ class Component(ComponentBase):
             raise UserException(e) from e
 
         # init client
-        base_url = self._configuration.api.base_url
-        if not isinstance(base_url, str):
-            raise UserException(
-                "The 'api.base_url' parameter must be a URL string, but a value of type "
-                f"'{type(base_url).__name__}' was given. Dynamic references such as "
-                '{"attr": "some_user_parameter"} or function objects are not evaluated in '
-                "'base_url'. Please set it to a plain URL string, e.g. \"https://example.com\"."
-            )
-
         self._client = GenericHttpClient(
             base_url=base_url,
             max_retries=self._configuration.api.retry_config.max_retries,

@@ -6,6 +6,7 @@ Created on 12. 11. 2018
 
 import json
 import os
+import shutil
 import tempfile
 import unittest
 
@@ -17,14 +18,16 @@ from component import Component
 from user_functions import UserFunctions
 
 
-def _build_datadir(base_url) -> str:
+def _build_config(base_url, authentication=None) -> dict:
     """
-    Creates a minimal valid v2 datadir, with `api.base_url` set to the supplied value.
+    Builds a minimal valid v2 configuration, with `api.base_url` set to the supplied value.
     """
-    datadir = tempfile.mkdtemp()
-    config = {
+    api = {"base_url": base_url}
+    if authentication:
+        api["authentication"] = authentication
+    return {
         "parameters": {
-            "api": {"base_url": base_url},
+            "api": api,
             "user_parameters": {},
             "request_parameters": {"method": "POST", "endpoint_path": "/orders"},
             "request_content": {
@@ -39,9 +42,6 @@ def _build_datadir(base_url) -> str:
             },
         }
     }
-    with open(os.path.join(datadir, "config.json"), "w") as cfg_file:
-        json.dump(config, cfg_file)
-    return datadir
 
 
 class TestComponent(unittest.TestCase):
@@ -54,17 +54,47 @@ class TestComponent(unittest.TestCase):
             comp = Component()
             comp.run()
 
+    def _init_component(self, base_url, authentication=None) -> Component:
+        """
+        Runs Component.init_component() against a throwaway datadir built from the given api config.
+        """
+        datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, datadir, ignore_errors=True)
+        with open(os.path.join(datadir, "config.json"), "w") as cfg_file:
+            json.dump(_build_config(base_url, authentication), cfg_file)
+
+        with mock.patch.dict(os.environ, {"KBC_DATADIR": datadir}):
+            comp = Component()
+            comp.init_component()
+            return comp
+
     def test_object_base_url_raises_user_exception(self):
         """
         A non-string `api.base_url` (e.g. an unresolved {"attr": ...} reference) used to crash
         with an opaque AttributeError ('dict' object has no attribute 'endswith') and exit code 2.
         It must now surface as a UserException (exit code 1) naming the offending parameter.
         """
-        datadir = _build_datadir({"attr": "some_user_parameter"})
-        with mock.patch.dict(os.environ, {"KBC_DATADIR": datadir}):
-            comp = Component()
-            with self.assertRaises(UserException) as ctx:
-                comp.init_component()
+        with self.assertRaises(UserException) as ctx:
+            self._init_component({"attr": "some_user_parameter"})
+
+        self.assertIn("api.base_url", str(ctx.exception))
+        self.assertIn("dict", str(ctx.exception))
+
+    def test_object_base_url_raises_user_exception_with_login_auth(self):
+        """
+        With a Login/OAuth auth method the base_url is joined with the login endpoint while the auth
+        method is built, which happens before the client is constructed. That path must also report a
+        UserException rather than an opaque AttributeError from urljoin.
+        """
+        authentication = {
+            "type": "Login",
+            "parameters": {
+                "loginRequest": {"endpoint": "/login", "method": "POST"},
+                "apiRequest": {"headers": {"X-ApiToken": {"response": "token"}}},
+            },
+        }
+        with self.assertRaises(UserException) as ctx:
+            self._init_component({"attr": "some_user_parameter"}, authentication=authentication)
 
         self.assertIn("api.base_url", str(ctx.exception))
 
@@ -72,10 +102,7 @@ class TestComponent(unittest.TestCase):
         """
         Happy path guard: a plain string base_url must keep initialising the client exactly as before.
         """
-        datadir = _build_datadir("https://example.com")
-        with mock.patch.dict(os.environ, {"KBC_DATADIR": datadir}):
-            comp = Component()
-            comp.init_component()
+        comp = self._init_component("https://example.com")
 
         self.assertEqual("https://example.com/", comp._client.base_url)
 
