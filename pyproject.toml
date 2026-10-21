@@ -10,7 +10,7 @@ dependencies = [
     "keboola-http-client>=1.0.1",
     "keboola-utils>=1.1.0",
     "nested-lookup>=0.2.25",
-    "requests>=2.32.3",
+    "requests>=2.33.0",
 ]
 
 [dependency-groups]
